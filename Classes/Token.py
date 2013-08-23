@@ -3,7 +3,7 @@ __author__ = 'Matheus'
 
 class Token:
 
-    def __init__(self, name, category):
+    def __init__(self, name, category, bad=None):
         """
 
         :param name:
@@ -11,3 +11,7 @@ class Token:
         """
         self.name = name
         self.category = category
+        if bad is None:
+            self.bad = False
+        else:
+            self.bad = bad

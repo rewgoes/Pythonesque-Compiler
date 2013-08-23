@@ -1,0 +1,14 @@
+algoritmo
+declare
+nome: literal
+idade: inteiro
+
+{ leitura de nome e idade }
+leia(nome)
+leia(idade)
+
+{ saída da mensagem na tela }
+escreva(nome@, " tem ",
+idade, " anos.")
+
+fim_algoritmo

@@ -25,6 +25,7 @@ def main(infile):
     :param infile:
     """
     global keywords, symbols
+    listTokens = []
     # Class that creates the symbol table
     symtable = SymTable(keywords, symbols)
 
@@ -36,15 +37,22 @@ def main(infile):
     ly.symtable = symtable
 
     # Read line from file and send it to LexicalAy.getToken() method
-    for line in f.readline():
-        ly.getToken(line)
+    for line in f:
+        tmpList = ly.getToken(line)
+        for token in tmpList:
+            listTokens.append(token)
 
-        # TODO - Print tokens on outfile
+    for token in listTokens:
+        if token.bad:
+            print('{0}{1}'.format(token.name, token.category))
+        else:
+            print('{0} - {1}'.format(token.name, token.category))
 
+    #ly.symtable.printTable()
 
 if __name__ == '__main__':
     # Get command line argument
-    infile = sys.argv[0]
+    infile = sys.argv[1]
 
     # Calls main function
     main(infile)
