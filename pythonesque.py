@@ -1,8 +1,8 @@
 __author__ = 'Matheus'
 
 import sys
-from Classes.KeyTable import KeyTable
 from Classes.LexicalAy import LexicalAy
+from Classes.SymTable import SymTable
 
 
 # List of reserved words
@@ -14,32 +14,37 @@ keywords = ['algoritmo', 'fim_algoritmo', 'declare', 'literal', 'inteiro', 'real
             'falso', 'retorne']
 
 # List of reserved symbols
-symbols =  [':', ',', '^', '(', ')', '-', '%', '*', '/', '+', '&', '=', '<', '>', '.',
-            '[', ']', '<-', '<>', '<=', '>=', '..']
+symbols = [':', ',', '^', '(', ')', '-', '%', '*', '/', '+', '&', '=', '<', '>', '.',
+           '[', ']', '<-', '<>', '<=', '>=', '..']
 
 
 def main(infile):
     # Create reserved words and symbols table
+    """
+
+    :param infile:
+    """
     global keywords, symbols
-    # Class that initializes the reserved words and symbols table
-    keytable = KeyTable(keywords, symbols)
+    # Class that creates the symbol table
+    symtable = SymTable(keywords, symbols)
 
     # Open input file
     f = open(infile)
 
-    # Instantiate the Lexical Analyser Class and assigns the keytable to it
-    ly = LexicalAy(keytable)
-    ly.table = keytable
+    # Instantiate the Lexical Analyser Class and assigns the keytable and symtable to it
+    ly = LexicalAy(symtable)
+    ly.symtable = symtable
 
     # Read line from file and send it to LexicalAy.getToken() method
     for line in f.readline():
         ly.getToken(line)
 
-    # TODO - Print tokens on outfile
+        # TODO - Print tokens on outfile
+
 
 if __name__ == '__main__':
     # Get command line argument
-    infile = sys.argv[1]
+    infile = sys.argv[0]
 
     # Calls main function
     main(infile)
