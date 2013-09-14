@@ -19,13 +19,16 @@ symbols = [':', ',', '^', '(', ')', '-', '%', '*', '/', '+', '&', '=', '<', '>',
 
 
 def main(infile):
-    # Create reserved words and symbols table
-    """
-
+    """(file) -> None
+    
+    Create reserved words and symbols table 
+    
     :param infile:
     """
+    
     global keywords, symbols
     listTokens = []
+    
     # Class that creates the symbol table
     symtable = SymTable(keywords, symbols)
 
@@ -34,7 +37,6 @@ def main(infile):
 
     # Instantiate the Lexical Analyser Class and assigns the keytable and symtable to it
     ly = LexicalAy(symtable)
-    ly.symtable = symtable
 
     # Read line from file and send it to LexicalAy.getToken() method
     for line in f:
