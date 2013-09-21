@@ -1,6 +1,9 @@
+__author__ = 'Matheus'
+__author__ = 'Rafael'
+__author__ = 'Thiago'
+
 from Classes.Token import Token
 
-__author__ = 'Matheus'
 
 
 class LexicalAy(object):
@@ -50,40 +53,25 @@ class LexicalAy(object):
             self.lineNumber -= 1
         else:
             auto = 'begin'
+            
+        string = ''
+        isString = False
+        tmpSizeListToken = 0
 
         state = 0
         tmp = ''
 
         for c in line:
-            # String automaton
-            # TODO - Fix recognition when there's tokens before a string open and this string doesn't close, causing a strerror automaton
-            # What's happening basically: When automaton reads " it enters the string sub-automaton. Then it will read any characters expect \n.
-            # If it finds a closing quote it will append the token to the listToken, otherwise if it never finds the closing quote, it will treat
-            # this as a string_error, which will trigger another call to this function to retrieve the tokens that weren't retrieved the first time
-            # because it was being treated as a string. But, the problem is that if there's token BEFORE and opening quote, it will append these twice.
-            if auto == 'string':
-                if state == 1 and c != '"':
-                    if c == '\n':
-                        auto = 'string_error'
-                    else:
-                        tmp += c
-                elif state == 1 and c == '"':
-                    state = 2
-                    tmp += c
-
-                if state == 2:
-                    self.listToken.append(Token(tmp, 'cadeia_literal'))
-                    auto = 'begin'
-                    continue
-
+            
+            string += c
+            
             # Comment automaton
             if auto == 'comment':
-                if state == 1 and c != '}':
+                if c != '}':
                     if c == '\n':
-                        self.listToken.append(Token('Linha ' + str(self.lineNumber) + ': ', 'comentario nao fechado', True))
+                        self.listToken.append(Token('Linha ' + str(self.lineNumber + 1) + ': ', 'comentario nao fechado', True))
                         auto = 'begin'
-                        continue
-                if state == 1 and c == '}':
+                elif c == '}':
                     auto = 'begin'
                     continue
 
@@ -92,7 +80,8 @@ class LexicalAy(object):
                 if state == 1:
                     if c.isdigit():
                         tmp += c
-                    elif not c.isdigit():
+                        continue
+                    else:
                         if c == '.':
                             state = 2
                         else:
@@ -158,25 +147,13 @@ class LexicalAy(object):
                         self.listToken.append(Token(tmp, 'identificador'))
                     auto = 'begin'
 
-            # String Error
-            if auto == 'string_error':
-                if not strerr:
-                    self.listToken = self.getToken(line, strerr=True, plist=self.listToken)
-                    return self.listToken
-                else:
-                    if state == 0 and c == '"':
-                        tmp += c
-                        self.listToken.append(Token('Linha ' + str(self.lineNumber) + ': ' + tmp, 'simbolo nao identificado'))
-                        auto = 'begin'
-                        continue
-
             # Checks which automaton to enter
             if auto == 'begin':
                 tmp = ''
                 state = 1
-                if c == '\t':
-                    continue
-                if c == '"':
+                if c == '\t' or c == '\n' or c == ' ' or c == '\r':
+                        continue
+                elif c == '"':
                     tmp += c
                     auto = 'string'
                 elif c == '{':
@@ -184,13 +161,27 @@ class LexicalAy(object):
                 elif c.isdigit():
                     tmp += c
                     auto = 'number'
-                elif not c.isalnum() and c != '\n' and c != ' ' and c != '_':
+                elif not c.isalnum() and c != "_":
                     tmp += c
                     auto = 'symbol'
-                    openq = True
-                    closeq = False
-                elif (c.isalpha() or c == '_') and c != '\n' and c != ' ':
+                elif (c.isalpha() or c == '_'):
                     tmp += c
                     auto = 'names'
+                    
+            # String
+            if auto == 'string':
+                if not isString:
+                    isString = True
+                    tmpSizeListToken = len(self.listToken)
+                    string = c
+                    self.listToken.append(Token('Linha ' + str(self.lineNumber) + ': ' + tmp, 'simbolo nao identificado'))
+                else:
+                    tmpSizeListToken = len(self.listToken) - tmpSizeListToken
+                    for i in range(tmpSizeListToken):
+                        self.listToken.pop()
+                    self.listToken.append(Token(string, 'cadeia_literal'))
+                    string = ''
+                    isString = False
+                auto = 'begin'
 
         return self.listToken

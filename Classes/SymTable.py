@@ -1,4 +1,6 @@
-__author__ = 'matheus'
+__author__ = 'Matheus'
+__author__ = 'Rafael'
+__author__ = 'Thiago'
 
 
 class SymTable(object):
