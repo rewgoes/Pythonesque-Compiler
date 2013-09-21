@@ -1,0 +1,24 @@
+LEIA_ME.txt
+
+Universidade Federal de São Carlos
+Departamento de Computação
+Construção de Compiladores 2
+
+Grupo:
+	Bruno de Mattos e Silva		379484
+	Matheus Fernando Finatti	379603
+	Rafael Eduardo Wolf de Goes	379441
+	Thiago Neves Romero		379654
+
+Trabalho 1: Analisador Léxico
+
+	a) O trabalho foi feito na linguagem python. 
+	   O interpretador do Python2.7 pode ser baixado do endereço (http://python.org/download/).
+	   Há versões para Windows, Linux e Mac OS X. Geralmente, os sistemas Linux já vem com o interpretador do python instalado.
+	   Se estiver utilizando o Windows, após a instalação deve-se adicionar o caminho de onde o interpretador foi instalado no ambiente de variávies do sistema.
+
+	b) Para executar o programa tenha no seu diretório o arquivo Pythonesque.py, a pasta Classes (contendo os arquivos Token.py, SymTable.py e LexicalAy.py). Utilize a seguinte instrução para executar.
+	python Pythonesque.py nome_arquivo_entrada nome_arquivo_saida
+
+	nome_arquivo_entrada	= Substituir pelo nome do arquivo que contém o código da linguagem fonte.
+	nome_arquivo_saida	= Substituir pelo nome do arquivo que irá conter os lexemas encontrados do código da linguagem fonte.
