@@ -22,3 +22,5 @@ Trabalho 1: Analisador Léxico
 
 	nome_arquivo_entrada	= Substituir pelo nome do arquivo que contém o código da linguagem fonte.
 	nome_arquivo_saida	= Substituir pelo nome do arquivo que irá conter os lexemas encontrados do código da linguagem fonte.
+
+	c) Você pode utilizar a ferramenta de teste automatizada. Os arquivos de entrada devem estar numa psta chamada "entrada/" e os arquivos de saída em uma pasta "saida/". Para rodar basta executar o script "test.sh".
