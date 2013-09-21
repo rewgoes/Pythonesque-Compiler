@@ -53,11 +53,11 @@ def main(infile, outfile):
     # Write
     for token in listTokens:
         if token.bad:
-            print('{0}{1}'.format(token.name, token.category))
+            #print('{0}{1}'.format(token.name, token.category))
             # write output in file
             out.write('{0}{1}\n'.format(token.name, token.category))
         else:
-            print('{0} - {1}'.format(token.name, token.category))
+            #print('{0} - {1}'.format(token.name, token.category))
             # write output in file
             out.write('{0} - {1}\n'.format(token.name, token.category))
             
