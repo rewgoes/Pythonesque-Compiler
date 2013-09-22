@@ -50,7 +50,7 @@ def main(infile, outfile):
     # Open output file
     out = open(outfile, "w")
     
-    # Write
+    # Write on the output file
     for token in listTokens:
         if token.bad:
             #print('{0}{1}'.format(token.name, token.category))
@@ -68,7 +68,7 @@ def main(infile, outfile):
     #ly.symtable.printTable()
 
 if __name__ == '__main__':
-    # Get command line argument
+    # Get command line arguments
     infile = sys.argv[1]
     outfile = sys.argv[2]
 

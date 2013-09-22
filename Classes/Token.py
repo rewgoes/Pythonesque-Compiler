@@ -4,7 +4,7 @@ __author__ = 'Thiago'
 
 
 class Token:
-
+    # Constructor
     def __init__(self, name, category, bad=None):
         """
 

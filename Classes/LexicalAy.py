@@ -7,7 +7,6 @@ from Classes.Token import Token
 
 
 class LexicalAy(object):
-
     # Constructor
     def __init__(self, symtable):
         # Attributes initialization
@@ -115,7 +114,7 @@ class LexicalAy(object):
                         auto = 'begin'
 
 
-            # Symbols
+            # Symbols automaton
             if auto == 'symbol':
                     if tmp+c in self.symtable.table:
                         tmp += c
@@ -126,7 +125,7 @@ class LexicalAy(object):
                         self.listToken.append(Token('Linha ' + str(self.lineNumber) + ': ' + tmp, 'simbolo nao identificado'))
                         auto = 'begin'
 
-            # Names
+            # Names automaton
             if auto == 'names':
                 if state == 1 and (c.isalnum() or c == '_'):
                     tmp += c
