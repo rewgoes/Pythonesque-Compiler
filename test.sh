@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 
 INPUT=entrada/*
-OUTPUT=saida/*
 
+
+# Remove previous folder
+rm -rf testoutput/
 
 # Create folder
 mkdir testoutput/
@@ -27,5 +29,3 @@ do
     fi
 done
 
-# Remove previous folder
-rm -rf testoutput/
