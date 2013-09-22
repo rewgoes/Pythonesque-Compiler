@@ -1,6 +1,7 @@
 __author__ = 'Matheus'
 __author__ = 'Rafael'
 __author__ = 'Thiago'
+__author__ = 'Bruno'
 
 from Classes.Token import Token
 

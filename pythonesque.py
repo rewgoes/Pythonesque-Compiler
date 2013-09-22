@@ -1,6 +1,7 @@
 __author__ = 'Matheus'
 __author__ = 'Rafael'
 __author__ = 'Thiago'
+__author__ = 'Bruno'
 
 import sys
 from Classes.LexicalAy import LexicalAy
