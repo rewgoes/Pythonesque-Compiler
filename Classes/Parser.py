@@ -184,4 +184,61 @@ class Parser(object):
     def valor_constante(self):
         pass
 
+    # bruno (45 - 58)
+    def parcela_unario(self):
+        # ^ IDENT <outros_ident> <dimensao> | IDENT <chamada_partes> | NUM_INT | NUM_REAL | ( <expressao> )
+        pass
+
+    def parcela_nao_unario(self):
+        # & IDENT <outros_ident> <dimensao> | CADEIA
+        pass
+
+    def outras_parcelas(self):
+        # % <parcela> <outras_parcelas> | ε
+        pass
+
+    def chamada_partes(self):
+        # ( <expressao> <mais_expressao> ) | <outros_ident> <dimensao> | ε
+        pass
+
+    def exp_relacional(self):
+        # <exp_aritmetica> <op_opcional>
+        pass
+
+    def op_opcional(self):
+        # <op_relacional> <exp_aritmetica> | ε
+        pass
+
+    def op_relacional(self):
+        # = | <> | >= | <= | > | <
+        pass
+
+    def expressao(self):
+        # <termo_logico> <outros_termos_logicos>
+        pass
+
+    def op_nao(self):
+        # nao | ε
+        pass
+
+    def termo_logico(self):
+        # <fator_logico> <outros_fatores_logicos>
+        pass
+
+    def outros_termos_logicos(self):
+        # ou <termo_logico> <outros_termos_logicos> | ε
+        pass
+
+    def outros_fatores_logicos(self):
+        # e <fator_logico> <outros_fatores_logicos> | ε
+        pass
+
+    def fator_logico(self):
+        # <op_nao> <parcela_logica>
+        pass
+
+    def parcela_logica(self):
+        # verdadeiro | falso | <exp_relacional>
+        pass
+
     # TODO: other methods, remove 'pass' if writing in one of these
