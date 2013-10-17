@@ -1,8 +1,11 @@
 __author__ = 'Matheus'
+__author__ = 'Rafael'
+__author__ = 'Thiago'
+__author__ = 'Bruno'
 
 
 class Token:
-
+    # Constructor
     def __init__(self, name, category, bad=None):
         """
 

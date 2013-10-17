@@ -1,7 +1,11 @@
-__author__ = 'matheus'
+__author__ = 'Matheus'
+__author__ = 'Rafael'
+__author__ = 'Thiago'
+__author__ = 'Bruno'
 
 
 class SymTable(object):
+    # Constructor
     def __init__(self, keywords, keysymbols):
         self.table = self.initTable(keywords, keysymbols)
 
@@ -18,12 +22,15 @@ class SymTable(object):
 
         return tmp
 
+    # Prints the Symbol Table
     def printTable(self):
         for e, (name, klass, ttype, scope, value, linedc, lineref) in self.table.items():
             print("[{0}] -({1} - {2} - {3} - {4} - {5} - {6} - {7})".format(e, name, klass, ttype, scope, value, linedc, lineref))
 
+    # Insert a symbol in the table
     def insertSymbol(self, key, stuff):
         self.table[key] = stuff
 
+    # Removes a symbol from the table
     def removeSymbol(self, key):
         self.table.pop(key)

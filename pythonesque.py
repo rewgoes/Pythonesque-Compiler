@@ -1,4 +1,7 @@
 __author__ = 'Matheus'
+__author__ = 'Rafael'
+__author__ = 'Thiago'
+__author__ = 'Bruno'
 
 import sys
 from Classes.LexicalAy import LexicalAy
@@ -18,14 +21,18 @@ symbols = [':', ',', '^', '(', ')', '-', '%', '*', '/', '+', '&', '=', '<', '>',
            '[', ']', '<-', '<>', '<=', '>=', '..']
 
 
-def main(infile):
-    # Create reserved words and symbols table
-    """
-
+def main(infile, outfile):
+    """(file) -> None
+    
+    Create reserved words and symbols table 
+    
     :param infile:
+    :param outfile
     """
+    
     global keywords, symbols
     listTokens = []
+    
     # Class that creates the symbol table
     symtable = SymTable(keywords, symbols)
 
@@ -34,7 +41,6 @@ def main(infile):
 
     # Instantiate the Lexical Analyser Class and assigns the keytable and symtable to it
     ly = LexicalAy(symtable)
-    ly.symtable = symtable
 
     # Read line from file and send it to LexicalAy.getToken() method
     for line in f:
@@ -42,17 +48,30 @@ def main(infile):
         for token in tmpList:
             listTokens.append(token)
 
+    # Open output file
+    out = open(outfile, "w")
+    
+    # Write on the output file
     for token in listTokens:
         if token.bad:
-            print('{0}{1}'.format(token.name, token.category))
+            #print('{0}{1}'.format(token.name, token.category))
+            # write output in file
+            out.write('{0}{1}\n'.format(token.name, token.category))
         else:
-            print('{0} - {1}'.format(token.name, token.category))
+            #print('{0} - {1}'.format(token.name, token.category))
+            # write output in file
+            out.write('{0} - {1}\n'.format(token.name, token.category))
+            
+    # Close input and output file
+    f.close()
+    out.close()
 
     #ly.symtable.printTable()
 
 if __name__ == '__main__':
-    # Get command line argument
+    # Get command line arguments
     infile = sys.argv[1]
+    outfile = sys.argv[2]
 
     # Calls main function
-    main(infile)
+    main(infile,outfile)
