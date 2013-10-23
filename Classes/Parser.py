@@ -1,6 +1,6 @@
 __author__ = 'matheus_rafael_thiago_bruno'
 
-#  from Classes.LexicalAy import LexicalAy
+from Classes.LexicalAy import LexicalAy
 
 
 class Parser(object):
@@ -65,8 +65,7 @@ class Parser(object):
     def getToken(self):
         # Obtain the first token on the list
         if not self.listToken:
-            # self.listToken = LexicalAy.getToken()
-            pass
+            self.listToken = LexicalAy.getToken()
 
         self.currentToken = self.listToken.pop()
 
@@ -210,8 +209,8 @@ class Parser(object):
     # Thiago (31-44)
     def mais_selecao(self):
         # <selecao> | 3
-        while self.currentToken in self.firstOf('mais_selecao'):
-            self.mais_selecao()
+        if self.currentToken in self.firstOf('selecao'):
+            self.selecao()
     
     def constantes(self):
         # <numero_intervalo> <mais_constantes>
@@ -223,15 +222,15 @@ class Parser(object):
     
     def mais_constantes(self):
         # , <constantes> | 3
-        while self.currentToken == ',':
+        if self.currentToken == ',':
             self.getToken()
             self.constantes()
     
     def numero_intervalo(self):
         # <op_unario> NUM_INT <intervalo_opicional>
-        while self.currentToken in self.firstOf('numero_intervalo'):
+        if self.currentToken in self.firstOf('op_unario'):
             self.op_unario()
-            self.getToken()
+            #self.getToken() # duvida
             if self.currentToken == 'numero_inteiro':
                 self.getToken()
                 self.intervalo_opcional()
@@ -240,7 +239,7 @@ class Parser(object):
     
     def intervalo_opcional(self):
         # .. <op_unario> NUM_INT | 3
-        while self.currentToken == '..':
+        if self.currentToken == '..':
             self.getToken()
             self.op_unario()
             if self.currentToken == 'numero_inteiro':
@@ -250,7 +249,7 @@ class Parser(object):
     
     def op_unario(self):
         # - | 3
-        while self.currentToken == '-':
+        if self.currentToken == '-':
             self.getToken()
     
     def exp_aritmetica(self):
@@ -285,7 +284,7 @@ class Parser(object):
     
     def outros_termos(self):
         # <op_adicao> <termo> <outros_termos> | 3
-        while self.currentToken in self.firstOf('outros_termos'):
+        while self.currentToken in self.firstOf('op_adicao'):
             self.op_adicao()
             self.termo()
             self.outros_termos()
@@ -300,7 +299,7 @@ class Parser(object):
     
     def outros_fatores(self):
         # <op_multiplicacao> <fator> <outros_termos> | 3
-        while self.currentToken in self.firstOf('outros_fatores'):
+        while self.currentToken in self.firstOf('op_multiplicacao'):
             self.op_multiplicacao()
             self.fator()
             self.outros_termos()
