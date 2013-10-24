@@ -1,18 +1,21 @@
 __author__ = 'matheus_rafael_thiago_bruno'
 
-from Classes.LexicalAy import LexicalAy
+from Classes.Token import Token
 
 
 class Parser(object):
 
-    def __init__(self):
+    def __init__(self, lexer):
         # Tokens read from input will populate this list
         # Parser will read this list until it's empty
         # When list is empty, parser will call LexicalAy.getToken()
         self.listToken = []
 
+        # Reference to the lexer object
+        self.lexer = lexer
+
         # This variable stores the current token being analysed
-        self.currentToken = 0
+        self.currentToken = Token('a', 'a')
 
         # This is first-set of non-terminals ("primeiros")
         # It's a dictionary where the non-terminal/terminal is the key
@@ -20,52 +23,52 @@ class Parser(object):
         # Use the firstOf method to access the list
         # TODO: Complete the firstSet list, remember to check if the non-terminal you're doing is already in this list
         self.firstSet = \
-            {# Matheus (01-15) 
-             'programa':  ['3', 'declare', 'constante', 'tipo', 'procedimento', 'funcao'],
-             'declaracoes': ['3', 'declare', 'constante', 'tipo', 'procedimento', 'funcao' ],
-             'declaracao_local_global': ['3', 'declare', 'constante', 'tipo', 'procedimento', 'funcao' ],
-             'declaracao_global': ['declare', 'constante', 'tipo'],
-             'declaracao_local': ['procedimento, funcao'],
-             'variavel': ['^', '3'],
-             'identificador': ['^', '3'],
-             'ponteiro_opcional': ['^', '3'],
-             'outros_ident': ['.'],
-             'dimensao': ['['],
-             'tipo': ['registro'],
-             'registro': ['registro'],
-             'mais_ident': [',', '3'],
-             'mais_variaveis': ['^', '3'],
-             'tipo_basico': ['cadeia_literal', 'numero_inteiro', 'numero_real', 'logico'],
-             'tipo_basico_ident': ['cadeia_literal', 'numero_inteiro', 'numero_real', 'logico', 'identificador'],  # How to handle this `IDENT` ?
-             'tipo_estendido': ['^', '3'],
+            {  # Matheus (01-15)
+            'programa':  ['3', 'declare', 'constante', 'tipo', 'procedimento', 'funcao'],
+            'declaracoes': ['3', 'declare', 'constante', 'tipo', 'procedimento', 'funcao' ],
+            'declaracao_local_global': ['3', 'declare', 'constante', 'tipo', 'procedimento', 'funcao' ],
+            'declaracao_global': ['declare', 'constante', 'tipo'],
+            'declaracao_local': ['procedimento, funcao'],
+            'variavel': ['^', '3'],
+            'identificador': ['^', '3'],
+            'ponteiro_opcional': ['^', '3'],
+            'outros_ident': ['.'],
+            'dimensao': ['['],
+            'tipo': ['registro'],
+            'registro': ['registro'],
+            'mais_ident': [',', '3'],
+            'mais_variaveis': ['^', '3'],
+            'tipo_basico': ['cadeia_literal', 'numero_inteiro', 'numero_real', 'logico'],
+            'tipo_basico_ident': ['cadeia_literal', 'numero_inteiro', 'numero_real', 'logico', 'identificador'],  # How to handle this `IDENT` ?
+            'tipo_estendido': ['^', '3'],
              
-             # Rafael (16-30)
+            # Rafael (16-30)
              
-             # Thiago (31-44)
-             'mais_selecao': ['-', 'numero_inteiro', '3'],
-             'constantes': ['-', 'numero_inteiro'],
-             'mais_constantes': [',', '3'],
-             'numero_intervalo': ['-', 'numero_inteiro'],
-             'intervalo_opcional': ['..', '3'],
-             'op_unario': ['-', '3'],
-             'exp_aritmetica': ['-', '^', 'identificador', 'numero_inteiro', 'numero_real', '(', '&', 'cadeia_literal'],
-             'op_multiplicacao': ['*', '/'],
-             'op_adicao': ['+', '-'],
-             'termo': ['-', '^', 'identificador', 'numero_inteiro', 'numero_real', '(', '&', 'cadeia_literal'],
-             'outros_termos': ['+', '-', '3'],
-             'fator': ['-', '^', 'identificador', 'numero_inteiro', 'numero_real', '(', '&', 'cadeia_literal'],
-             'outros_fatores': ['*', '/', '3'],
-             'parcela': ['-', '^', 'identificador', 'numero_inteiro', 'numero_real', '(', '&', 'cadeia_literal']
-             
-             # Bruno (45-58)
-             }
+            # Thiago (31-44)
+            'mais_selecao': ['-', 'numero_inteiro', '3'],
+            'constantes': ['-', 'numero_inteiro'],
+            'mais_constantes': [',', '3'],
+            'numero_intervalo': ['-', 'numero_inteiro'],
+            'intervalo_opcional': ['..', '3'],
+            'op_unario': ['-', '3'],
+            'exp_aritmetica': ['-', '^', 'identificador', 'numero_inteiro', 'numero_real', '(', '&', 'cadeia_literal'],
+            'op_multiplicacao': ['*', '/'],
+            'op_adicao': ['+', '-'],
+            'termo': ['-', '^', 'identificador', 'numero_inteiro', 'numero_real', '(', '&', 'cadeia_literal'],
+            'outros_termos': ['+', '-', '3'],
+            'fator': ['-', '^', 'identificador', 'numero_inteiro', 'numero_real', '(', '&', 'cadeia_literal'],
+            'outros_fatores': ['*', '/', '3'],
+            'parcela': ['-', '^', 'identificador', 'numero_inteiro', 'numero_real', '(', '&', 'cadeia_literal']
+
+            # Bruno (45-58)
+            }
 
     # Helper methods
 
     def getToken(self):
         # Obtain the first token on the list
-        if not self.listToken:
-            self.listToken = LexicalAy.getToken()
+        while not self.listToken:
+            self.listToken = self.lexer.getToken()
 
         self.currentToken = self.listToken.pop()
 
@@ -87,30 +90,30 @@ class Parser(object):
         # <declaracoes> algoritmo <corpo> fim_algoritmo
         self.declaracoes()
 
-        if self.currentToken == 'algoritmo':
+        if self.currentToken.name == 'algoritmo':
             self.getToken()
         else:
             self.error()
 
         self.corpo()
 
-        if self.currentToken == 'fim_algoritmo':
+        if self.currentToken.name == 'fim_algoritmo':
             self.getToken()
         else:
             self.error()
 
     def declaracoes(self):
         # <decl_local_global> <declaracoes> | 3
-        while self.currentToken in self.firstOf('declaracoes'):  # [?]
+        while self.currentToken.name in self.firstOf('declaracoes'):  # [?]
             self.getToken()
             self.decl_local_global()
             self.declaracoes()
 
     def decl_local_global(self):
         # <declaracao_local> | <declaracao_global>
-        if self.currentToken in self.firstOf('declaracao_local'):
+        if self.currentToken.name in self.firstOf('declaracao_local'):
             self.declaracao_local()
-        elif self.currentToken in self.firstOf('declaracao_global'):
+        elif self.currentToken.name in self.firstOf('declaracao_global'):
             self.declaracao_global()
         else:
             self.error()
@@ -119,16 +122,16 @@ class Parser(object):
         # declare <variavel>
         # | constante IDENT : <tipo_basico> = <valor_constante>
         # | tipo IDENT : <tipo>
-        if self.currentToken == 'declare':
+        if self.currentToken.name == 'declare':
             self.getToken()
             self.variavel()
-        elif self.currentToken == 'constante':
+        elif self.currentToken.name == 'constante':
             # TODO: IDENT again, what to do with this?
             self.getToken()
-            if self.currentToken == ':':
+            if self.currentToken.name == ':':
                 self.getToken()
                 self.tipo_basico()
-                if self.currentToken == '=':
+                if self.currentToken.name == '=':
                     self.getToken()
                     self.valor_constante()
                 else:
@@ -136,10 +139,10 @@ class Parser(object):
             else:
                 self.error()
 
-        elif self.currentToken == 'tipo':
+        elif self.currentToken.name == 'tipo':
             # IDENT
             self.getToken()
-            if self.currentToken == ':':
+            if self.currentToken.name == ':':
                 self.getToken()
                 self.tipo()
             else:
@@ -204,17 +207,16 @@ class Parser(object):
         pass
     
     # Rafael (16-30)
-    
-    
+
     # Thiago (31-44)
     def mais_selecao(self):
         # <selecao> | 3
-        if self.currentToken in self.firstOf('selecao'):
+        if self.currentToken.name in self.firstOf('selecao'):
             self.selecao()
     
     def constantes(self):
         # <numero_intervalo> <mais_constantes>
-        if self.currentToken in self.firstOf('numero_intervalo'):
+        if self.currentToken.name in self.firstOf('numero_intervalo'):
             self.numero_intervalo()
             self.mais_constantes()
         else:
@@ -222,16 +224,16 @@ class Parser(object):
     
     def mais_constantes(self):
         # , <constantes> | 3
-        if self.currentToken == ',':
+        if self.currentToken.name == ',':
             self.getToken()
             self.constantes()
     
     def numero_intervalo(self):
         # <op_unario> NUM_INT <intervalo_opicional>
-        if self.currentToken in self.firstOf('op_unario'):
+        if self.currentToken.name in self.firstOf('op_unario'):
             self.op_unario()
             #self.getToken() # duvida
-            if self.currentToken == 'numero_inteiro':
+            if self.currentToken.name == 'numero_inteiro':
                 self.getToken()
                 self.intervalo_opcional()
             else:
@@ -239,22 +241,22 @@ class Parser(object):
     
     def intervalo_opcional(self):
         # .. <op_unario> NUM_INT | 3
-        if self.currentToken == '..':
+        if self.currentToken.name == '..':
             self.getToken()
             self.op_unario()
-            if self.currentToken == 'numero_inteiro':
+            if self.currentToken.name == 'numero_inteiro':
                 self.getToken()
             else:
                 self.error()
     
     def op_unario(self):
         # - | 3
-        if self.currentToken == '-':
+        if self.currentToken.name == '-':
             self.getToken()
     
     def exp_aritmetica(self):
         # <termo> <outros_termos>
-        if self.currentToken in self.firstOf('termo'):
+        if self.currentToken.name in self.firstOf('termo'):
             self.termo()
             self.outros_termos()
         else:
@@ -262,21 +264,21 @@ class Parser(object):
     
     def op_multiplicacao(self):
         # * | /
-        if self.currentToken == '*' or self.currentToken =='/':
+        if self.currentToken.name == '*' or self.currentToken.name == '/':
             self.getToken()
         else:
             self.error()
     
     def op_adicao(self):
         # + | -
-        if self.currentToken == '+' or self.currentToken =='-':
+        if self.currentToken.name == '+' or self.currentToken.name == '-':
             self.getToken()
         else:
             self.error() 
     
     def termo(self):
         # <fator> <outros_fatores>
-        if self.currentToken in self.firstOf('fator'):
+        if self.currentToken.name in self.firstOf('fator'):
             self.fator()
             self.outros_fatores()
         else:
@@ -284,14 +286,14 @@ class Parser(object):
     
     def outros_termos(self):
         # <op_adicao> <termo> <outros_termos> | 3
-        while self.currentToken in self.firstOf('op_adicao'):
+        while self.currentToken.name in self.firstOf('op_adicao'):
             self.op_adicao()
             self.termo()
             self.outros_termos()
     
     def fator(self):
         # <parcela> <outras_parcelas>
-        if self.currentToken in self.firstOf('parcela'):
+        if self.currentToken.name in self.firstOf('parcela'):
             self.parcela()
             self.outras_parcelas()
         else:
@@ -299,17 +301,17 @@ class Parser(object):
     
     def outros_fatores(self):
         # <op_multiplicacao> <fator> <outros_termos> | 3
-        while self.currentToken in self.firstOf('op_multiplicacao'):
+        while self.currentToken.name in self.firstOf('op_multiplicacao'):
             self.op_multiplicacao()
             self.fator()
             self.outros_termos()
     
     def parcela(self):
         # <op_unario> <parcela_unario> | <parcela_nao_unario>
-        if self.currentToken in self.firstOf('op_unario'):
+        if self.currentToken.name in self.firstOf('op_unario'):
             self.op_unario()
             self.parcela_unario()
-        elif self.currentToken in self.firstOf('parcela_nao_unario'):
+        elif self.currentToken.name in self.firstOf('parcela_nao_unario'):
             self.parcela_nao_unario()
         else:
             self.error()

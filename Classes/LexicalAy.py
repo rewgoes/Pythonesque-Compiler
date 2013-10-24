@@ -4,31 +4,29 @@ __author__ = 'Thiago'
 __author__ = 'Bruno'
 
 from Classes.Token import Token
-
+import linecache
 
 
 class LexicalAy(object):
     # Constructor
-    def __init__(self, symtable):
+    def __init__(self, symtable, file):
         # Attributes initialization
         """
-
-        :param symtable:
+        :param symtable: symbol table reference
+        :param file: open file
         """
+        self.file = file
+        self.line = ''
         self.listToken = []
         self.previousToken = ""
         self.lineNumber = 0
         self.scope = 1
         self.symtable = symtable
 
-    def getToken(self, line, strerr=None, plist=None):
+    def getToken(self, strerr=None, plist=None):
         # Retrieves the next token in current line and stores in token attribute
-        """
 
-        :param line:
-        """
         global keywords, symbols
-        # TODO - Automaton implementation for token recognition
         # RegExes:
         # ID: [a-zA-Z_]+[0-9a-zA-Z_]*
         # Comments: {.*}
@@ -41,6 +39,8 @@ class LexicalAy(object):
 
         # Format of symboltable [ KEY, (NAME, CLASS, TYPE, SCOPE, VALUE, LINE DECLARED, LINE REFERENCED) ]
 
+        # Retrieve current line from file
+        self.line = linecache.getline(self.file, self.lineNumber)
         self.lineNumber += 1
 
         if plist:
@@ -61,7 +61,7 @@ class LexicalAy(object):
         state = 0
         tmp = ''
 
-        for c in line:
+        for c in self.line:
             
             string += c
             

@@ -1,11 +1,8 @@
-__author__ = 'Matheus'
-__author__ = 'Rafael'
-__author__ = 'Thiago'
-__author__ = 'Bruno'
-
 import sys
+from Classes import Parser
 from Classes.LexicalAy import LexicalAy
 from Classes.SymTable import SymTable
+from Classes.Parser import Parser
 
 
 # List of reserved words
@@ -36,34 +33,32 @@ def main(infile, outfile):
     # Class that creates the symbol table
     symtable = SymTable(keywords, symbols)
 
-    # Open input file
-    f = open(infile)
-
     # Instantiate the Lexical Analyser Class and assigns the keytable and symtable to it
-    ly = LexicalAy(symtable)
+    ly = LexicalAy(symtable, infile)
+    parser = Parser(ly)
 
     # Read line from file and send it to LexicalAy.getToken() method
-    for line in f:
-        tmpList = ly.getToken(line)
-        for token in tmpList:
-            listTokens.append(token)
+    #for line in f :
+    #    tmpList = ly.getToken()
+    #    for token in tmpList:
+    #        listTokens.append(token)
 
     # Open output file
     out = open(outfile, "w")
     
     # Write on the output file
-    for token in listTokens:
+    for token in parser.listToken:
         if token.bad:
-            #print('{0}{1}'.format(token.name, token.category))
+            print('{0}{1}'.format(token.name, token.category))
             # write output in file
-            out.write('{0}{1}\n'.format(token.name, token.category))
+            #out.write('{0}{1}\n'.format(token.name, token.category))
         else:
-            #print('{0} - {1}'.format(token.name, token.category))
+            print('{0} - {1}'.format(token.name, token.category))
             # write output in file
-            out.write('{0} - {1}\n'.format(token.name, token.category))
+            #out.write('{0} - {1}\n'.format(token.name, token.category))
             
     # Close input and output file
-    f.close()
+    #f.close()
     out.close()
 
     #ly.symtable.printTable()
@@ -74,4 +69,4 @@ if __name__ == '__main__':
     outfile = sys.argv[2]
 
     # Calls main function
-    main(infile,outfile)
+    main(infile, outfile)
