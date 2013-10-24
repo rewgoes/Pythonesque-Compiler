@@ -152,61 +152,677 @@ class Parser(object):
 
     def variavel(self):
         # <identificador> <mais_ident> : <tipo>
-        pass
+        if self.currentToken.name in self.firstOf('identificador'):
+            self.identificador()
+            if self.currentToken.name in self.firstOf('mais_ident'):
+                self.mais_ident()
+                if self.currentToken.name == ':':
+                    self.getToken()
+                    if self.currentToken.name in self.firstOf('tipo'):
+                        self.tipo()
+                    else:
+                        self.error()
+                else:
+                    self.error()
+            else:
+                self.error()
+        else:
+            self.error()
 
     def identificador(self):
         # <ponteiro_opcional> IDENT <outros_ident> <dimensao>
-        pass
+        if self.currentToken.name in self.firstOf('ponteiro_opcional'):
+            self.ponteiro_opcional()
+            if self.currentToken.name == 'identificador':
+                self.getToken()
+                if self.currentToken.name in self.firstOf('outros_ident'):
+                    self.outros_ident()
+                    if self.currentToken.name in self.firstOf('dimensao'):
+                        self.dimensao()
+                    else:
+                        self.error()
+                else:
+                    self.error()
+            else:
+                self.error()
+        else:
+            self.error()
 
     def ponteiro_opcional(self):
         # ^ | 3
-        pass
+        if self.currentToken.name == '^':
+            self.getToken()
 
     def outros_ident(self):
         # . IDENT <outros_ident> | 3
-        pass
+        if self.currentToken.name == '.':
+            self.getToken()
+            if self.currentToken.name == 'identificador':
+                self.getToken()
+                if self.currentToken.name in self.firstOf('outros_ident'):
+                    self.outros_ident()
+                else:
+                    self.error()
+            else:
+                self.error()
 
     def dimensao(self):
         # [ <exp_aritmetica ] <dimensao> | 3
-        pass
+        if self.currentToken.name == '[':
+            if self.currentToken.name in self.firstOf('exp_aritmetica'):
+                self.exp_aritmetica()
+                if self.currentToken.name == ']':
+                    self.getToken()
+                    if self.currentToken.name in self.firstOf('dimensao'):
+                        self.dimensao()
+                    else:
+                        self.error()
+                else:
+                    self.error()
+            else:
+                self.error()
 
     def tipo(self):
         # <registro> | <tipo_estendido>
-        pass
+        if self.currentToken.name in self.firstOf('registro'):
+            self.registro()
+        elif self.currentToken.name in self.firstOf('tipo_estendido'):
+            self.tipo_estendido()
+        else:
+            self.error()
 
     def mais_ident(self):
         # , <identificador> <mais_ident> | 3
-        pass
+        if self.currentToken.name == ',':
+            self.getToken()
+            if self.currentToken.name in self.firstOf('identificador'):
+                self.identificador()
+                if self.currentToken.name in self.firstOf('mais_ident'):
+                    self.mais_ident()
+                else:
+                    self.error()
+            else:
+                self.error()
 
     def mais_variaveis(self):
         # <variavel> <mais_variaveis> | 3
-        pass
+        if self.currentToken.name in self.firstOf('variavel'):
+            self.variavel()
+            if self.currentToken.name in self.firstOf('mais_variaveis'):
+                self.mais_variaveis()
+            else:
+                self.error()
 
     def tipo_basico(self):
         # literal | inteiro | real | logico
-        pass
+        if self.currentToken.name == 'literal' or self.currentToken.name == 'inteiro' or self.currentToken.name == 'real' or self.currentToken.name == 'logico':
+            self.getToken()
+        else:
+            self.error()
 
     def tipo_basico_ident(self):
         # <tipo_basico> | IDENT
-        pass
+        if self.currentToken.name in self.firstOf('tipo_basico'):
+            self.tipo_basico()
+        elif self.currentToken.name == 'identificador':
+            self.getToken()
+        else:
+            self.error()
 
     def tipo_estendido(self):
         # <ponteiro_opcional> <tipo_basico_ident>
-        pass
+        if self.currentToken.name in self.firstOf('ponteiro_opcional'):
+            self.ponteiro_opcional()
+            if self.currentToken.name in self.firstOf('tipo_basico_ident'):
+                self.tipo_basico_ident()
+            else:
+                self.error()
+        else:
+            self.error()
 
     def corpo(self):
         # <declaracoes_locais> <comandos>
-        pass
+        if self.currentToken.name in self.firstOf('declaracoes_locais'):
+            self.declaracoes_locais()
+            if self.currentToken.name in self.firstOf('comandos'):
+                self.comandos()
+            else:
+                self.error()
+        else:
+            self.error()
 
     def declaracao_global(self):
         # procedimento IDENT ( <parametros_opcional> ) <declaracoes_locais> <comandos> fim_procedimento
+        if self.currentToken.name == 'procedimento':
+            self.getToken()
+            if self.currentToken.name == 'identificador':
+                self.getToken()
+                if self.currentToken.name == '(':
+                    self.getToken()
+                    if self.currentToken.name in self.firstOf('parametros_opicional'):
+                        self.parametros_opicinal()
+                        if self.currentToken.name == ')':
+                            self.getToken()
+                            if self.currentToken.name in self.firstOf('declaracoes_locais'):
+                                self.declaracoes_locais()
+                                if self.currentToken.name in self.firstOf('comandos'):
+                                    self.comandos()
+                                    if self.currentToken.name == 'fim_procedimento':
+                                        self.getToken()
+                                    else:
+                                        self.error()
+                                else:
+                                    self.error()
+                            else:
+                                self.error()
+                        else:
+                            self.error()
+                    else:
+                        self.error()
+                else:
+                    self.error()
+            else:
+                self.error()
+            
         # | funcao IDENT ( <parametros_opcional> ) : <tipo_estendido> <declaracoes_locais> <comandos> fim_funcao
-        pass
+        elif self.currentToken.name == 'funcao':
+            self.getToken()
+            if self.currentToken.name == 'identificador':
+                self.getToken()
+                if self.currentToken.name == '(':
+                    self.getToken()
+                    if self.currentToken.name in self.firstOf('parametros_opicional'):
+                        self.parametros_opicinal()
+                        if self.currentToken.name == ')':
+                            self.getToken()
+                            if self.currentToken.name == ':':
+                                self.getToken()
+                                if self.currentToken.name in self.firstOf('tipo_estendido'):
+                                    self.tipo_estendido()
+                                    if self.currentToken.name in self.firstOf('declaracoes_locais'):
+                                        self.declaracoes_locais()
+                                        if self.currentToken.name in self.firstOf('comandos'):
+                                            self.comandos()
+                                            if self.currentToken.name == 'fim_funcao':
+                                                self.getToken()
+                                            else:
+                                                self.error()
+                                        else:
+                                            self.error()
+                                    else:
+                                        self.error()
+                                else:
+                                    self.error()
+                            else:
+                                self.error()
+                        else:
+                            self.error()
+                    else:
+                        self.error()
+                else:
+                    self.error()
+            else:
+                self.error()
+        else:
+            self.error()
 
-    def valor_constante(self):
-        pass
-    
     # Rafael (16-30)
+    def valor_constante(self):
+        # CADEIA | NUM_INT | NUM_REAL | verdadeiro | falso
+        if self.currentToken.name == 'cadeia_literal' or self.currentToken.name == 'numero_inteiro' or self.currentToken.name == 'numero_real' or self.currentToken.name == 'verdadeiro' or self.currentToken.name == 'falso':
+            self.getToken()
+    
+    def registro(self):
+        # registro <variavel> <mais_variaveis> fim_registro
+        if self.currentToken.name == 'registro':
+            self.getToken()
+            if self.currentToken.name in self.firstOf('variavel'):
+                self.variavel()
+                if self.currentToken.name in self.firstOf('mais_variaveis'):
+                    self.mais_variaveis()
+                    if self.currentToken.name == 'fim_registro':
+                        self.getToken()
+                    else:
+                        self.error()
+                else:
+                    self.error()
+            else:
+                self.error()
+        else:
+            self.error()
+    
+    def declaracao_global(self):
+        # procedimento IDENT ( <parametros_opcional> ) <declaracoes_locais> <comandos> fim_procedimento
+        if self.currentToken.name == 'procedimento':
+            self.getToken()
+            if self.currentToken.name == 'identificador':
+                self.getToken()
+                if self.currentToken.name == '(':
+                    self.getToken()
+                    if self.currentToken.name in self.firstOf('parametros_opicional'):
+                        self.parametros_opicinal()
+                        if self.currentToken.name == ')':
+                            self.getToken()
+                            if self.currentToken.name in self.firstOf('declaracoes_locais'):
+                                self.declaracoes_locais()
+                                if self.currentToken.name in self.firstOf('comandos'):
+                                    self.comandos()
+                                    if self.currentToken.name == 'fim_procedimento':
+                                        self.getToken()
+                                    else:
+                                        self.error()
+                                else:
+                                    self.error()
+                            else:
+                                self.error()
+                        else:
+                            self.error()
+                    else:
+                        self.error()
+                else:
+                    self.error()
+            else:
+                self.error()
+                
+        # | funcao IDENT ( <parametros_opcional> ) : <tipo_estendido> <declaracoes_locais> <comandos> fim_funcao
+        elif self.currentToken.name == 'funcao':
+            self.getToken()
+            if self.currentToken.name == 'identificador':
+                self.getToken()
+                if self.currentToken.name == '(':
+                    self.getToken()
+                    if self.currentToken.name in self.firstOf('parametros_opcional'):
+                        self.parametros_opicinal()
+                        if self.currentToken.name == ')':
+                            self.getToken()
+                            if self.currentToken.name == ':':
+                                self.getToken()
+                                if self.currentToken.name in self.firstOf('tipo_estendido'):
+                                    self.tipo_estendido()
+                                    if self.currentToken.name in self.firstOf('declaracoes_locais'):
+                                        self.declaracoes_locais()
+                                        if self.currentToken.name in self.firstOf('comandos'):
+                                            self.comandos()
+                                            if self.currentToken.name == 'fim_funcao':
+                                                self.getToken()
+                                            else:
+                                                self.error()
+                                        else:
+                                            self.error()
+                                    else:
+                                        self.error()
+                                else:
+                                    self.error()
+                            else:
+                                self.error()
+                        else:
+                             self.error()
+                    else:
+                        self.error()
+                else:
+                    self.error()
+            else:
+                self.error()
+            
+        else:
+            self.error()
+    
+    def parametros_opicinal(self):
+        # <parametro> | 3
+        if self.currentToken.name in self.firstOf('parametro'):
+            self.parametro()
+    
+    def parametro(self):
+        # <var_opcional> <identificador> <mais_ident> : <tipo_estendido> <mais_parametros>
+        if self.currentToken.name in self.firstOf('var_opcional'):
+            self.var_opicinal()
+            if self.currentToken.name in self.firstOf('identificador'):
+                self.identificador()
+                if self.currentToken.name in self.firstOf('mais_ident'):
+                    self.mais_ident()
+                    if self.currentToken.name == ':':
+                        self.getToken()
+                        if self.currentToken.name in self.firstOf('tipo_estendido'):
+                            self.tipo_estendido()
+                            if self.currentToken.name in self.firstOf('mais_parametros'):
+                                self.mais_parametros()
+                            else:
+                                self.error()
+                        else:
+                            self.error()
+                    else:
+                        self.error()
+                else:
+                    self.error()
+            else:
+                self.error()
+        else:
+            self.error()
+    
+    def var_opicinal(self):
+        # var | 3
+        if self.currentToken.name == 'var':
+            self.getToken()
+    
+    def mais_parametros(self):
+        #, <parametro> | 3
+        if self.currentToken.name == ',':
+            self.getToken()
+            if self.currentToken.name in self.firstOf('parametro'):
+                self.parametro()
+            else:
+                self.error()
+    
+    def declaracoes_locais(self):
+        # <declaracao_local> <declaracoes_locais> | 3
+        if self.currentToken.name in self.firstOf('declaracao_local'):
+            self.declaracao_local()
+            if self.currentToken.name in self.firstOf('declaracoes_locais'):
+                self.declaracoes_locais()
+            else:
+                self.error()
+    
+    def corpo(self):
+        # <declaracoes_locais> <comandos>
+        if self.currentToken.name in self.firstOf('declaracoes_locais'):
+            self.declaracoes_locais()
+            if self.currentToken.name in self.firstOf('comandos'):
+                self.comandos()
+            else:
+                self.error()
+        else:
+            self.error()
+    
+    def comandos(self):
+        # <cmd> <comandos> | 3
+        if self.currentToken.name in self.firstOf('cmd'):
+            self.cmd()
+            if self.currentToken.name in self.firstOf('comandos'):
+                self.comandos()
+            else:
+                self.error()
+    
+    def cmd(self):
+        # leia ( <identificador> <mais_ident> )
+        if self.currentToken.name == 'leia':
+            self.getToken()
+            if self.currentToken.name == '(':
+                self.getToken()
+                if self.currentToken.name in self.firstOf('identificador'):
+                    self.identificador()
+                    if self.currentToken.name in self.firstOf('mais_ident'):
+                        self.mais_ident()()
+                        if self.currentToken.name == ')':
+                            self.getToken()
+                        else:
+                            self.error()
+                    else:
+                        self.error()
+                else:
+                    self.error()
+            else:
+                self.error()
+        
+        # | escreva ( <expressao> <mais_expressao> )
+        elif self.currentToken.name == 'escreva':
+            self.getToken()
+            if self.currentToken.name == '(':
+                self.getToken()
+                if self.currentToken.name in self.firstOf('expressao'):
+                    self.expressao()
+                    if self.currentToken.name in self.firstOf('mais_expressao'):
+                        self.mais_expressao()()
+                        if self.currentToken.name == ')':
+                            self.getToken()
+                        else:
+                            self.error()
+                    else:
+                        self.error()
+                else:
+                    self.error()
+            else:
+                self.error()
+        
+        # | se <expressao> entao <comandos> <senao_opcional> fim_se
+        elif self.currentToken.name == 'se':
+            self.getToken()
+            if self.currentToken.name in self.firstOf('expressao'):
+                self.expressao()
+                if self.currentToken.name == 'entao':
+                    self.getToken()
+                    if self.currentToken.name in self.firstOf('comandos'):
+                        self.comandos()
+                        if self.currentToken.name in self.firstOf('senao_opicional'):
+                            self.senao_opcional()
+                            if self.currentToken.name == 'fim_se':
+                                self.getToken()
+                            else:
+                                self.error()
+                        else:
+                            self.error()
+                    else:
+                        self.error()
+                else:
+                    self.error()
+            else:
+                self.error()
+                
+        # | caso <exp_aritmetica> seja <selecao> <senao_opcional> fim_caso
+        elif self.currentToken.name == 'caso':
+            self.getToken()
+            if self.currentToken.name in self.firstOf('exp_aritmetica'):
+                self.exp_aritmetica()
+                if self.currentToken.name == 'seja':
+                    self.getToken()
+                    if self.currentToken.name in self.firstOf('selecao'):
+                        self.selecao()
+                        if self.currentToken.name in self.firstOf('senao_opcional'):
+                            self.senao_opcional()
+                            if self.currentToken.name == 'fim_caso':
+                                self.getToken()
+                            else:
+                                self.error()
+                        else:
+                            self.error()
+                    else:
+                        self.error()
+                else:
+                    self.error()
+            else:
+                self.error()
+                
+        # | para IDENT <- <exp_aritmetica> ate <exp_aritmetica> faca <comandos> fim_para
+        elif self.currentToken.name == 'para':
+            self.getToken()
+            if self.currentToken.name == 'identificador':
+                self.getToken()
+                if self.currentToken.name == '<-':
+                    self.getToken()
+                    if self.currentToken.name in self.firstOf('exp_aritmetica'):
+                        self.exp_aritmetica()
+                        if self.currentToken.name == 'ate':
+                            self.getToken()
+                            if self.currentToken-name in self.firstOf('exp_aritmetica'):
+                                self.exp_aritmetica()
+                                if self.currentToken.name == 'faca':
+                                    self.getToken()
+                                    if self.currentToken.name in self.firstOf('comandos'):
+                                        self.comandos()
+                                        if self.currentToken.name == 'fim_para':
+                                            self.getToken()
+                                        else:
+                                            self.error()
+                                    else:
+                                        self.error()
+                                else:
+                                    self.error()
+                            else:
+                                self.error()
+                        else:
+                            self.error()
+                    else:
+                        self.error()
+                else:
+                    self.error()
+            else:
+                self.error()
+            
+            
+        # | enquanto <expressao> faca <comandos> fim_enquanto
+        elif self.currentToken.name == 'enquanto':
+            self.getToken()
+            if self.currentToken.name in self.firstOf('expressao'):
+                self.expressao()
+                if self.currentToken.name == 'faca':
+                    self.getToken()
+                    if self.currentToken.name in self.firstOf('comandos'):
+                        self.comandos()
+                        if self.currentToken.name == 'fim_enquanto':
+                            self.getToken()
+                        else:
+                            self.error()
+                    else:
+                        self.error()
+                else:
+                    self.error()
+            else:
+                self.error()
+            
+            
+        # | faca <comandos> ate <expressao>
+        elif self.currentToken.name == 'faca':
+            self.getToken()
+            if self.currentToken.name in self.firstOf('comandos'):
+                self.comandos()
+                if self.currentToken.name == 'ate':
+                    self.getToken()
+                    if self.currentToken.name in self.firstOf('expressao'):
+                        self.expressao()
+                    else:
+                        self.error()
+                else:
+                    self.error()
+            else:
+                self.error()
+            
+            
+        # | ^ IDENT <outros_ident> <dimensao> <- <expressao>
+        elif self.currentToken.name == '^':
+            self.getToken()
+            if self.currentToken.name == 'identificador':
+                if self.currentToken.name in self.firstOf('outros_ident'):
+                    self.outros_ident()
+                    if self.currentToken.name in self.firstOf('dimensao'):
+                        self.dimensao()
+                        if self.currentToken.name == '<-':
+                            self.getToken()
+                            if self.currentToken.name in self.firstOf('expressao'):
+                                self.expressao()
+                            else:
+                                self.error()
+                        else:
+                            self.error()
+                    else:
+                        self.error()
+                else:
+                    self.error()
+            else:
+                self.error()
+            
+            
+        # | IDENT <chamada_atribuicao>
+        elif self.currentToken.name == 'identificador':
+            self.getToken()
+            if self.currentToken.name in self.firstOf('chamada_atribuicao'):
+                self.chamada_atribuicao()
+            else:
+                self.error()
+        
+        # | retorne <expressao>
+        elif self.currentToken.name == 'retorne':
+            self.getToken()
+            if self.currentToken.name in self.firstOf('expressao'):
+                self.expressao()
+            else:
+                self.error()
+        else:
+            self.error()
+    
+    def mais_expressao(self):
+        # , <expressao> <mais_expressao> | 3
+        if self.currentToken.name == ',':
+            self.getToken()
+            if self.currentToken.name in self.firstOf('expressao'):
+                self.expressao()
+                if self.currentToken.name in self.firstOf('mais_expressao'):
+                    self.mais_expressao()
+                else:
+                    self.error()
+            else:
+                self.error()
+    
+    def senao_opcional(self):
+        # senao <comandos> | 3
+        if self.currentToken.name == 'senao':
+            self.getToken()
+            if self.currentToken.name in self.firstOf('comandos'):
+                self.comandos()
+            else:
+                self.error()
+    
+    def chamada_atribuicao(self):
+        # ( <expressao> <mais_expressao> ) | <outros_ident> <dimensao> <- <expressao>
+        if self.currentToken.name == '(':
+            self.getToken()
+            if self.currentToken.name in self.firstOf('expressao'):
+                self.expressao()
+                if self.currentToken.name in self.firstOf('mais_expressao'):
+                    self.mais_expressao()
+                    if self.currentToken.name == ')':
+                        self.getToken()
+                    else:
+                        self.error()
+                else:
+                    self.error()
+            else:
+                self.error()
+        
+        elif self.currentToken.name in self.firstOf('outros_ident'):
+            self.outros_ident()
+            if self.currentToken.name in self.firstOf('dimensao'):
+                self.dimensao()
+                if self.currentToken.name == '<-':
+                    self.getToken()
+                    if self.currentToken.name in self.firstOf('expressao'):
+                        self.expressao()
+                    else:
+                        self.error()
+                else:
+                    self.error()
+            else:
+                self.error()
+            
+        else:
+            self.error()
+    
+    def selecao(self):
+        # <constantes> : <comandos> <mais_selecao>
+        if self.currentToken.name in self.firstOf('constantes'):
+            self.constantes()
+            if self.currentToken.name == ':':
+                self.getToken()
+                if self.currentToken.name in self.firstOf('comandos'):
+                    self.comandos()
+                    if self.currentToken.name in self.firstOf('mais_selecao'):
+                        self.mais_selecao()
+                    else:
+                        self.error()
+                else:
+                    self.error()
+            else:
+                self.error()
+        else:
+            self.error()
 
     # Thiago (31-44)
     def mais_selecao(self):
@@ -218,7 +834,10 @@ class Parser(object):
         # <numero_intervalo> <mais_constantes>
         if self.currentToken.name in self.firstOf('numero_intervalo'):
             self.numero_intervalo()
-            self.mais_constantes()
+            if self.currentToken.name in self.firstOf('constantes'):
+                self.mais_constantes()
+            else:
+                self.error()
         else:
             self.error()
     
@@ -226,26 +845,34 @@ class Parser(object):
         # , <constantes> | 3
         if self.currentToken.name == ',':
             self.getToken()
-            self.constantes()
+            if self.currentToken.name in self.firstOf('constantes'):
+                self.mais_constantes()
+            else:
+                self.error()
     
     def numero_intervalo(self):
         # <op_unario> NUM_INT <intervalo_opicional>
         if self.currentToken.name in self.firstOf('op_unario'):
             self.op_unario()
-            #self.getToken() # duvida
             if self.currentToken.name == 'numero_inteiro':
                 self.getToken()
-                self.intervalo_opcional()
+                if self.currentToken.name in self.firstOf('intervalo_opicional'):
+                    self.intervalo_opcional()
             else:
                 self.error()
+        else:
+            self.error()
     
     def intervalo_opcional(self):
         # .. <op_unario> NUM_INT | 3
         if self.currentToken.name == '..':
             self.getToken()
-            self.op_unario()
-            if self.currentToken.name == 'numero_inteiro':
-                self.getToken()
+            if self.currentToken.name in self.firstOf('op_unario'):
+                self.op_unario()
+                if self.currentToken.name == 'numero_inteiro':
+                    self.getToken()
+                else:
+                    self.error()
             else:
                 self.error()
     
@@ -258,7 +885,10 @@ class Parser(object):
         # <termo> <outros_termos>
         if self.currentToken.name in self.firstOf('termo'):
             self.termo()
-            self.outros_termos()
+            if self.currentToken.name in self.firstOf('outros_termos'):
+                self.outros_termos()
+            else:
+                self.error()
         else:
             self.error()
     
@@ -280,7 +910,10 @@ class Parser(object):
         # <fator> <outros_fatores>
         if self.currentToken.name in self.firstOf('fator'):
             self.fator()
-            self.outros_fatores()
+            if self.currentToken.name in self.firstOf('outros_fatores'):
+                self.outros_fatores()
+            else:
+                self.error()
         else:
             self.error()
     
@@ -288,14 +921,20 @@ class Parser(object):
         # <op_adicao> <termo> <outros_termos> | 3
         while self.currentToken.name in self.firstOf('op_adicao'):
             self.op_adicao()
-            self.termo()
-            self.outros_termos()
+            if self.currentToken.name in self.firstOf('termo'):
+                self.termo()
+            else:
+                self.error()
+            
     
     def fator(self):
         # <parcela> <outras_parcelas>
         if self.currentToken.name in self.firstOf('parcela'):
             self.parcela()
-            self.outras_parcelas()
+            if self.currentToken.name in self.firstOf('outras_parcelas'):
+                self.outras_parcelas()
+            else:
+                self.error()
         else:
             self.error()
     
@@ -303,14 +942,23 @@ class Parser(object):
         # <op_multiplicacao> <fator> <outros_termos> | 3
         while self.currentToken.name in self.firstOf('op_multiplicacao'):
             self.op_multiplicacao()
-            self.fator()
-            self.outros_termos()
+            if self.currentToken.name in self.firstOf('fator'):
+                self.fator()
+                if self.currentToken.name in self.firstOf('outros_termos'):
+                    self.outros_termos()
+                else:
+                    self.error()
+            else:
+                self.error()
     
     def parcela(self):
         # <op_unario> <parcela_unario> | <parcela_nao_unario>
         if self.currentToken.name in self.firstOf('op_unario'):
             self.op_unario()
-            self.parcela_unario()
+            if self.currentToken.name in self.firstOf('parcela_unario'):
+                self.parcela_unario()
+            else:
+                self.error()
         elif self.currentToken.name in self.firstOf('parcela_nao_unario'):
             self.parcela_nao_unario()
         else:
@@ -320,58 +968,200 @@ class Parser(object):
     # Bruno (45-58)
     def parcela_unario(self):
         # ^ IDENT <outros_ident> <dimensao> | IDENT <chamada_partes> | NUM_INT | NUM_REAL | ( <expressao> )
-        pass
+        if self.currentToken.name == '^':
+            self.getToken()
+            if self.currentToken.name == 'identificador':
+                self.getToken()
+                if self.currentToken.name in self.firstOf('outros_ident'):
+                    self.outros_ident()
+                    if self.currentToken.name in self.firstOf('dimensao'):
+                        self.dimensao()
+                    else:
+                        self.error()
+                else:
+                    self.error()
+            else:
+                self.error()
+        
+        elif self.currentToken.name == 'identificador':
+            self.getToken()
+            if self.currentToken.name in self.firstOf('chamada_partes'):
+                self.chamada_partes()
+            else:
+                self.error()
+        
+        elif self.currentToken.name == 'numero_inteiro' or self.currentToken.name == 'numero_real':
+            self.getToken()
+            
+        elif self.currentToken.name == '(':
+            self.getToken()
+            if self.currentToken.name in self.firstOf('expressao'):
+                self.expressao()
+                if self.currentToken.name == ')':
+                    self.getToken()
+                else:
+                    self.error()
+            else:
+                self.error()
+        else:
+            self.error()
 
     def parcela_nao_unario(self):
         # & IDENT <outros_ident> <dimensao> | CADEIA
-        pass
+        if self.currentToken.name == '&':
+            self.getToken()
+            if self.currentToken.name == 'identificador':
+                self.getToken()
+                if self.currentToken.name in self.firstOf('outros_ident'):
+                    self.outros_ident()
+                    if self.currentToken.name in self.firstOf('dimensao'):
+                        self.dimensao()
+                    else:
+                        self.error()
+                else:
+                    self.error()
+            else:
+                self.error()
+        elif self.currentToken.name == 'cadeia_literal':
+            self.getToken()
+        else:
+            self.error()
 
     def outras_parcelas(self):
         # % <parcela> <outras_parcelas> | ε
-        pass
+        if self.currentToken.name == '%':
+            self.getToken()
+            if self.currentToken.name in self.firstOf('parcela'):
+                self.parcela()
+                if self.currentToken.name in self.firstOf('outras_parcelas'):
+                    self.outras_parcelas()
+                else:
+                    self.error()
+            else:
+                self.error()
+        
 
     def chamada_partes(self):
         # ( <expressao> <mais_expressao> ) | <outros_ident> <dimensao> | ε
-        pass
+        if self.currentToken.name == '(':
+            self.getToken()
+            if self.currentToken.name in self.firstOf('expressao'):
+                self.expressao()
+                if self.currentToken.name in self.firstOf('mais_expressao'):
+                    self.mais_expressao()
+                    if self.currentToken.name == ')':
+                        self.getToken()
+                    else:
+                        self.error()
+                else:
+                    self.error()
+            else:
+                self.error()
+        elif self.currentToken.name in self.firstOf('outros_ident'):
+            self.outros_ident()
+            if self.currentToken.name in self.firstOf('dimensao'):
+                self.dimensao()
+            else:
+                self.error()
 
     def exp_relacional(self):
         # <exp_aritmetica> <op_opcional>
-        pass
+        if self.currentToken.name in self.firstOf('exp_aritmetica'):
+            self.exp_aritmetica()
+            if self.currentToken.name in self.firstOf('op_opcional'):
+                self.op_opcional()
+            else:
+                self.error()
+        else:
+            self.error()
 
     def op_opcional(self):
         # <op_relacional> <exp_aritmetica> | ε
-        pass
+        if self.currentToken.name in self.firstOf('op_relacional'):
+            self.op_relacional()
+            if self.currentToken.name in self.firstOf('exp_aritmetica'):
+                self.exp_aritmetica()
+            else:
+                self.error()
 
     def op_relacional(self):
         # = | <> | >= | <= | > | <
-        pass
+        if self.currentToken.name == '=' or self.currentToken.name == '<>' or self.currentToken.name == '>=' or self.currentToken.name == '<=' or self.currentToken.name == '>' or self.currentToken.name == '<':
+            self.getToken()
+        else:
+            self.error()
 
     def expressao(self):
         # <termo_logico> <outros_termos_logicos>
-        pass
+        if self.currentToken.name in self.firstOf('termo_logico'):
+            self.termo_logico()
+            if self.currentToken.name in self.firstOf('outros_termos_logicos'):
+                self.outros_termos_logicos()
+            else:
+                self.error()
+        else:
+            self.error()
 
     def op_nao(self):
         # nao | ε
-        pass
+        if self.currentToken.name == 'nao':
+            self.getToken()
 
     def termo_logico(self):
         # <fator_logico> <outros_fatores_logicos>
-        pass
+        if self.currentToken.name in self.firstOf('fator_logico'):
+            self.fator_logico()
+            if self.currentToken.name in self.firstOf('outros_fatores_logicos'):
+                self.outros_fatores_logicos()
+            else:
+                self.error()
+        else:
+            self.error()
 
     def outros_termos_logicos(self):
         # ou <termo_logico> <outros_termos_logicos> | ε
-        pass
+        if self.currentToken.name == 'ou':
+            self.getToken()
+            if self.currentToken.name in self.firstOf('termo_logico'):
+                self.termo_logico()
+                if self.currentToken.name in self.firstOf('outros_termos_logicos'):
+                    self.outros_termos_logicos()
+                else:
+                    self.error()
+            else:
+                self.error()
 
     def outros_fatores_logicos(self):
         # e <fator_logico> <outros_fatores_logicos> | ε
-        pass
+        if self.currentToken.name == 'e':
+            self.getToken()
+            if self.currentToken.name in self.firstOf('fator_logico'):
+                self.fator_logico()
+                if self.currentToken.name in self.firstOf('outros_fatores_logicos'):
+                    self.outros_fatores_logicos()
+                else:
+                    self.error()
+            else:
+                self.error()
 
     def fator_logico(self):
         # <op_nao> <parcela_logica>
-        pass
+        if self.currentToken.name in self.firstOf('op_nao'):
+            self.op_nao()
+            if self.currentToken.name in self.firstOf('parcela_logica'):
+                self.parcela_logica()
+            else:
+                self.error()
+        else:
+            self.error()
 
     def parcela_logica(self):
         # verdadeiro | falso | <exp_relacional>
-        pass
+        if self.currentToken.name == 'verdadeiro' or self.currentToken.name == 'falso':
+            self.getToken()
+        elif self.currentToken.name in self.firstOf('exp_relacional'):
+            self.exp_relacional()
+        else:
+            self.error()
 
     # TODO: other methods, remove 'pass' if writing in one of these
