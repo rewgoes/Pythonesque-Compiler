@@ -119,6 +119,7 @@ class Parser(object):
 
     # Grammar rules
     # Matheus (01-15)
+    # 1
     def programa(self):
         # <declaracoes> algoritmo <corpo> fim_algoritmo
         self.declaracoes()
@@ -135,6 +136,7 @@ class Parser(object):
         else:
             self.error()
 
+    # 2
     def declaracoes(self):
         # <decl_local_global> <declaracoes> | 3
         while self.currentToken.category in self.firstOf('declaracoes'):  # [?]
@@ -142,6 +144,7 @@ class Parser(object):
             self.decl_local_global()
             self.declaracoes()
 
+    # 3
     def decl_local_global(self):
         # <declaracao_local> | <declaracao_global>
         if self.currentToken.category in self.firstOf('declaracao_local'):
@@ -151,6 +154,7 @@ class Parser(object):
         else:
             self.error()
 
+    # 4
     def declaracao_local(self):
         # declare <variavel>
         # | constante IDENT : <tipo_basico> = <valor_constante>
@@ -192,6 +196,7 @@ class Parser(object):
         else:
             self.error()
 
+    # 5
     def variavel(self):
         # <identificador> <mais_ident> : <tipo>
         if self.currentToken.category in self.firstOf('identificador'):
@@ -210,7 +215,8 @@ class Parser(object):
                 self.error()
         else:
             self.error()
-
+    
+    # 6
     def identificador(self):
         # <ponteiro_opcional> IDENT <outros_ident> <dimensao>
         if self.currentToken.category in self.firstOf('ponteiro_opcional'):
@@ -229,12 +235,14 @@ class Parser(object):
                 self.error()
         else:
             self.error()
-
+    
+    # 7
     def ponteiro_opcional(self):
         # ^ | 3
         if self.currentToken.category == '^':
             self.getToken()
 
+    # 8
     def outros_ident(self):
         # . IDENT <outros_ident> | 3
         if self.currentToken.category == '.':
@@ -247,7 +255,8 @@ class Parser(object):
                     self.error()
             else:
                 self.error()
-
+    
+    # 9
     def dimensao(self):
         # [ <exp_aritmetica ] <dimensao> | 3
         if self.currentToken.category == '[':
@@ -264,6 +273,7 @@ class Parser(object):
             else:
                 self.error()
 
+    # 10
     def tipo(self):
         # <registro> | <tipo_estendido>
         if self.currentToken.category in self.firstOf('registro'):
@@ -272,7 +282,8 @@ class Parser(object):
             self.tipo_estendido()
         else:
             self.error()
-
+    
+    # 11
     def mais_ident(self):
         # , <identificador> <mais_ident> | 3
         if self.currentToken.category == ',':
@@ -286,6 +297,7 @@ class Parser(object):
             else:
                 self.error()
 
+    # 12
     def mais_variaveis(self):
         # <variavel> <mais_variaveis> | 3
         if self.currentToken.category in self.firstOf('variavel'):
@@ -295,6 +307,7 @@ class Parser(object):
             else:
                 self.error()
 
+    # 13
     def tipo_basico(self):
         # literal | inteiro | real | logico
         if self.currentToken.category == 'literal' or self.currentToken.category == 'inteiro' or \
@@ -302,7 +315,8 @@ class Parser(object):
             self.getToken()
         else:
             self.error()
-
+    
+    # 14
     def tipo_basico_ident(self):
         # <tipo_basico> | IDENT
         if self.currentToken.category in self.firstOf('tipo_basico'):
@@ -311,7 +325,8 @@ class Parser(object):
             self.getToken()
         else:
             self.error()
-
+    
+    # 15
     def tipo_estendido(self):
         # <ponteiro_opcional> <tipo_basico_ident>
         if self.currentToken.category in self.firstOf('ponteiro_opcional'):
@@ -323,100 +338,16 @@ class Parser(object):
         else:
             self.error()
 
-    def corpo(self):
-        # <declaracoes_locais> <comandos>
-        if self.currentToken.category in self.firstOf('declaracoes_locais'):
-            self.declaracoes_locais()
-            if self.currentToken.category in self.firstOf('comandos'):
-                self.comandos()
-            else:
-                self.error()
-        else:
-            self.error()
-
-    def declaracao_global(self):
-        # procedimento IDENT ( <parametros_opcional> ) <declaracoes_locais> <comandos> fim_procedimento
-        if self.currentToken.category == 'procedimento':
-            self.getToken()
-            if self.currentToken.category == 'identificador':
-                self.getToken()
-                if self.currentToken.category == '(':
-                    self.getToken()
-                    if self.currentToken.category in self.firstOf('parametros_opicional'):
-                        self.parametros_opicinal()
-                        if self.currentToken.category == ')':
-                            self.getToken()
-                            if self.currentToken.category in self.firstOf('declaracoes_locais'):
-                                self.declaracoes_locais()
-                                if self.currentToken.category in self.firstOf('comandos'):
-                                    self.comandos()
-                                    if self.currentToken.category == 'fim_procedimento':
-                                        self.getToken()
-                                    else:
-                                        self.error()
-                                else:
-                                    self.error()
-                            else:
-                                self.error()
-                        else:
-                            self.error()
-                    else:
-                        self.error()
-                else:
-                    self.error()
-            else:
-                self.error()
-
-        # | funcao IDENT ( <parametros_opcional> ) : <tipo_estendido> <declaracoes_locais> <comandos> fim_funcao
-        elif self.currentToken.category == 'funcao':
-            self.getToken()
-            if self.currentToken.category == 'identificador':
-                self.getToken()
-                if self.currentToken.category == '(':
-                    self.getToken()
-                    if self.currentToken.category in self.firstOf('parametros_opicional'):
-                        self.parametros_opicinal()
-                        if self.currentToken.category == ')':
-                            self.getToken()
-                            if self.currentToken.category == ':':
-                                self.getToken()
-                                if self.currentToken.category in self.firstOf('tipo_estendido'):
-                                    self.tipo_estendido()
-                                    if self.currentToken.category in self.firstOf('declaracoes_locais'):
-                                        self.declaracoes_locais()
-                                        if self.currentToken.category in self.firstOf('comandos'):
-                                            self.comandos()
-                                            if self.currentToken.category == 'fim_funcao':
-                                                self.getToken()
-                                            else:
-                                                self.error()
-                                        else:
-                                            self.error()
-                                    else:
-                                        self.error()
-                                else:
-                                    self.error()
-                            else:
-                                self.error()
-                        else:
-                            self.error()
-                    else:
-                        self.error()
-                else:
-                    self.error()
-            else:
-                self.error()
-        else:
-            self.error()
-
     # Rafael (16-30)
+    # 16
     def valor_constante(self):
         # CADEIA | NUM_INT | NUM_REAL | verdadeiro | falso
         if self.currentToken.category == 'cadeia_literal' or self.currentToken.category == 'numero_inteiro' or \
                 self.currentToken.category == 'numero_real' or self.currentToken.category == 'verdadeiro' or \
                 self.currentToken.category == 'falso':
             self.getToken()
-
+    
+    # 17
     def registro(self):
         # registro <variavel> <mais_variaveis> fim_registro
         if self.currentToken.category == 'registro':
@@ -435,7 +366,8 @@ class Parser(object):
                 self.error()
         else:
             self.error()
-
+    
+    # 18
     def declaracao_global(self):
         # procedimento IDENT ( <parametros_opcional> ) <declaracoes_locais> <comandos> fim_procedimento
         if self.currentToken.category == 'procedimento':
@@ -511,12 +443,14 @@ class Parser(object):
 
         else:
             self.error()
-
+    
+    # 19
     def parametros_opicinal(self):
         # <parametro> | 3
         if self.currentToken.category in self.firstOf('parametro'):
             self.parametro()
 
+    # 20
     def parametro(self):
         # <var_opcional> <identificador> <mais_ident> : <tipo_estendido> <mais_parametros>
         if self.currentToken.category in self.firstOf('var_opcional'):
@@ -543,12 +477,14 @@ class Parser(object):
                 self.error()
         else:
             self.error()
-
-    def var_opicinal(self):
+    
+    # 21
+    def var_opcinal(self):
         # var | 3
         if self.currentToken.category == 'var':
             self.getToken()
 
+    # 22
     def mais_parametros(self):
         #, <parametro> | 3
         if self.currentToken.category == ',':
@@ -557,7 +493,7 @@ class Parser(object):
                 self.parametro()
             else:
                 self.error()
-
+    # 23
     def declaracoes_locais(self):
         # <declaracao_local> <declaracoes_locais> | 3
         if self.currentToken.category in self.firstOf('declaracao_local'):
@@ -567,6 +503,7 @@ class Parser(object):
             else:
                 self.error()
 
+    # 24
     def corpo(self):
         # <declaracoes_locais> <comandos>
         if self.currentToken.category in self.firstOf('declaracoes_locais'):
@@ -578,6 +515,7 @@ class Parser(object):
         else:
             self.error()
 
+    # 25
     def comandos(self):
         # <cmd> <comandos> | 3
         if self.currentToken.category in self.firstOf('cmd'):
@@ -586,7 +524,8 @@ class Parser(object):
                 self.comandos()
             else:
                 self.error()
-
+    
+    # 26 
     def cmd(self):
         # leia ( <identificador> <mais_ident> )
         if self.currentToken.category == 'leia':
@@ -789,6 +728,7 @@ class Parser(object):
         else:
             self.error()
 
+    # 27
     def mais_expressao(self):
         # , <expressao> <mais_expressao> | 3
         if self.currentToken.category == ',':
@@ -801,7 +741,8 @@ class Parser(object):
                     self.error()
             else:
                 self.error()
-
+    
+    # 28
     def senao_opcional(self):
         # senao <comandos> | 3
         if self.currentToken.category == 'senao':
@@ -810,7 +751,8 @@ class Parser(object):
                 self.comandos()
             else:
                 self.error()
-
+    
+    # 29
     def chamada_atribuicao(self):
         # ( <expressao> <mais_expressao> ) | <outros_ident> <dimensao> <- <expressao>
         if self.currentToken.category == '(':
@@ -845,7 +787,8 @@ class Parser(object):
 
         else:
             self.error()
-
+    
+    # 30
     def selecao(self):
         # <constantes> : <comandos> <mais_selecao>
         if self.currentToken.category in self.firstOf('constantes'):
@@ -866,11 +809,13 @@ class Parser(object):
             self.error()
 
     # Thiago (31-44)
+    # 31
     def mais_selecao(self):
         # <selecao> | 3
         if self.currentToken.category in self.firstOf('selecao'):
             self.selecao()
 
+    # 32
     def constantes(self):
         # <numero_intervalo> <mais_constantes>
         if self.currentToken.category in self.firstOf('numero_intervalo'):
@@ -881,7 +826,8 @@ class Parser(object):
                 self.error()
         else:
             self.error()
-
+    
+    # 33
     def mais_constantes(self):
         # , <constantes> | 3
         if self.currentToken.category == ',':
@@ -890,7 +836,8 @@ class Parser(object):
                 self.mais_constantes()
             else:
                 self.error()
-
+    
+    # 34
     def numero_intervalo(self):
         # <op_unario> NUM_INT <intervalo_opicional>
         if self.currentToken.category in self.firstOf('op_unario'):
@@ -903,7 +850,8 @@ class Parser(object):
                 self.error()
         else:
             self.error()
-
+    
+    # 35
     def intervalo_opcional(self):
         # .. <op_unario> NUM_INT | 3
         if self.currentToken.category == '..':
@@ -917,11 +865,13 @@ class Parser(object):
             else:
                 self.error()
 
+    # 36
     def op_unario(self):
         # - | 3
         if self.currentToken.category == '-':
             self.getToken()
 
+    # 37
     def exp_aritmetica(self):
         # <termo> <outros_termos>
         if self.currentToken.category in self.firstOf('termo'):
@@ -933,6 +883,7 @@ class Parser(object):
         else:
             self.error()
 
+    # 38
     def op_multiplicacao(self):
         # * | /
         if self.currentToken.category == '*' or self.currentToken.category == '/':
@@ -940,6 +891,7 @@ class Parser(object):
         else:
             self.error()
 
+    # 39
     def op_adicao(self):
         # + | -
         if self.currentToken.category == '+' or self.currentToken.category == '-':
@@ -947,6 +899,7 @@ class Parser(object):
         else:
             self.error()
 
+    # 40
     def termo(self):
         # <fator> <outros_fatores>
         if self.currentToken.category in self.firstOf('fator'):
@@ -958,6 +911,7 @@ class Parser(object):
         else:
             self.error()
 
+    # 41
     def outros_termos(self):
         # <op_adicao> <termo> <outros_termos> | 3
         while self.currentToken.category in self.firstOf('op_adicao'):
@@ -967,6 +921,7 @@ class Parser(object):
             else:
                 self.error()
 
+    # 42
     def fator(self):
         # <parcela> <outras_parcelas>
         if self.currentToken.category in self.firstOf('parcela'):
@@ -978,6 +933,7 @@ class Parser(object):
         else:
             self.error()
 
+    # 43
     def outros_fatores(self):
         # <op_multiplicacao> <fator> <outros_termos> | 3
         while self.currentToken.category in self.firstOf('op_multiplicacao'):
@@ -991,6 +947,7 @@ class Parser(object):
             else:
                 self.error()
 
+    # 44
     def parcela(self):
         # <op_unario> <parcela_unario> | <parcela_nao_unario>
         if self.currentToken.category in self.firstOf('op_unario'):
@@ -1005,6 +962,7 @@ class Parser(object):
             self.error()
 
     # Bruno (45-58)
+    # 45
     def parcela_unario(self):
         # ^ IDENT <outros_ident> <dimensao> | IDENT <chamada_partes> | NUM_INT | NUM_REAL | ( <expressao> )
         if self.currentToken.category == '^':
@@ -1044,7 +1002,8 @@ class Parser(object):
                 self.error()
         else:
             self.error()
-
+    
+    # 46
     def parcela_nao_unario(self):
         # & IDENT <outros_ident> <dimensao> | CADEIA
         if self.currentToken.category == '&':
@@ -1066,6 +1025,7 @@ class Parser(object):
         else:
             self.error()
 
+    # 47
     def outras_parcelas(self):
         # % <parcela> <outras_parcelas> | 3
         if self.currentToken.category == '%':
@@ -1079,6 +1039,7 @@ class Parser(object):
             else:
                 self.error()
 
+    # 48
     def chamada_partes(self):
         # ( <expressao> <mais_expressao> ) | <outros_ident> <dimensao> | 3
         if self.currentToken.category == '(':
@@ -1102,6 +1063,7 @@ class Parser(object):
             else:
                 self.error()
 
+    # 49
     def exp_relacional(self):
         # <exp_aritmetica> <op_opcional>
         if self.currentToken.category in self.firstOf('exp_aritmetica'):
@@ -1112,7 +1074,8 @@ class Parser(object):
                 self.error()
         else:
             self.error()
-
+    
+    # 50
     def op_opcional(self):
         # <op_relacional> <exp_aritmetica> | 3
         if self.currentToken.category in self.firstOf('op_relacional'):
@@ -1121,7 +1084,8 @@ class Parser(object):
                 self.exp_aritmetica()
             else:
                 self.error()
-
+    
+    # 51
     def op_relacional(self):
         # = | <> | >= | <= | > | <
         if self.currentToken.category == '=' or self.currentToken.category == '<>' or\
@@ -1131,6 +1095,7 @@ class Parser(object):
         else:
             self.error()
 
+    # 52
     def expressao(self):
         # <termo_logico> <outros_termos_logicos>
         if self.currentToken.category in self.firstOf('termo_logico'):
@@ -1141,12 +1106,14 @@ class Parser(object):
                 self.error()
         else:
             self.error()
-
+    
+    # 53
     def op_nao(self):
         # nao | 3
         if self.currentToken.category == 'nao':
             self.getToken()
-
+    
+    # 54
     def termo_logico(self):
         # <fator_logico> <outros_fatores_logicos>
         if self.currentToken.category in self.firstOf('fator_logico'):
@@ -1157,7 +1124,8 @@ class Parser(object):
                 self.error()
         else:
             self.error()
-
+    
+    # 55
     def outros_termos_logicos(self):
         # ou <termo_logico> <outros_termos_logicos> | 3
         if self.currentToken.category == 'ou':
@@ -1171,6 +1139,7 @@ class Parser(object):
             else:
                 self.error()
 
+    # 56
     def outros_fatores_logicos(self):
         # e <fator_logico> <outros_fatores_logicos> | 3
         if self.currentToken.category == 'e':
@@ -1183,7 +1152,8 @@ class Parser(object):
                     self.error()
             else:
                 self.error()
-
+    
+    # 57
     def fator_logico(self):
         # <op_nao> <parcela_logica>
         if self.currentToken.category in self.firstOf('op_nao'):
@@ -1195,6 +1165,7 @@ class Parser(object):
         else:
             self.error()
 
+    # 58
     def parcela_logica(self):
         # verdadeiro | falso | <exp_relacional>
         if self.currentToken.category == 'verdadeiro' or self.currentToken.category == 'falso':
