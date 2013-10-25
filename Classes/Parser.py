@@ -1057,7 +1057,7 @@ class Parser(object):
             self.error()
 
     def outras_parcelas(self):
-        # % <parcela> <outras_parcelas> | ε
+        # % <parcela> <outras_parcelas> | 3
         if self.currentToken.name == '%':
             self.getToken()
             if self.currentToken.name in self.firstOf('parcela'):
@@ -1071,7 +1071,7 @@ class Parser(object):
         
 
     def chamada_partes(self):
-        # ( <expressao> <mais_expressao> ) | <outros_ident> <dimensao> | ε
+        # ( <expressao> <mais_expressao> ) | <outros_ident> <dimensao> | 3
         if self.currentToken.name == '(':
             self.getToken()
             if self.currentToken.name in self.firstOf('expressao'):
@@ -1105,7 +1105,7 @@ class Parser(object):
             self.error()
 
     def op_opcional(self):
-        # <op_relacional> <exp_aritmetica> | ε
+        # <op_relacional> <exp_aritmetica> | 3
         if self.currentToken.name in self.firstOf('op_relacional'):
             self.op_relacional()
             if self.currentToken.name in self.firstOf('exp_aritmetica'):
@@ -1132,7 +1132,7 @@ class Parser(object):
             self.error()
 
     def op_nao(self):
-        # nao | ε
+        # nao | 3
         if self.currentToken.name == 'nao':
             self.getToken()
 
@@ -1148,7 +1148,7 @@ class Parser(object):
             self.error()
 
     def outros_termos_logicos(self):
-        # ou <termo_logico> <outros_termos_logicos> | ε
+        # ou <termo_logico> <outros_termos_logicos> | 3
         if self.currentToken.name == 'ou':
             self.getToken()
             if self.currentToken.name in self.firstOf('termo_logico'):
@@ -1161,7 +1161,7 @@ class Parser(object):
                 self.error()
 
     def outros_fatores_logicos(self):
-        # e <fator_logico> <outros_fatores_logicos> | ε
+        # e <fator_logico> <outros_fatores_logicos> | 3
         if self.currentToken.name == 'e':
             self.getToken()
             if self.currentToken.name in self.firstOf('fator_logico'):
