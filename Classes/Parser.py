@@ -227,20 +227,20 @@ class Parser(object):
     # 6
     def identificador(self):
         # <ponteiro_opcional> IDENT <outros_ident> <dimensao>
-        if self.currentToken.category in self.firstOf('ponteiro_opcional'):
-            self.ponteiro_opcional()
-            if self.currentToken.category == 'identificador':
-                self.getToken()
-                if self.currentToken.category in self.firstOf('outros_ident'):
-                    self.outros_ident()
-                    if self.currentToken.category in self.firstOf('dimensao'):
-                        self.dimensao()
-                    else:
-                        self.error()
+        #if self.currentToken.category in self.firstOf('ponteiro_opcional'):
+        self.ponteiro_opcional()
+        if self.currentToken.category == 'identificador':
+            self.getToken()
+            if self.currentToken.category in self.firstOf('outros_ident'):
+                self.outros_ident()
+                if self.currentToken.category in self.firstOf('dimensao'):
+                    self.dimensao()
                 else:
                     self.error()
             else:
                 self.error()
+        else:
+            self.error()
         #else:
         #   self.error()
     
@@ -462,7 +462,7 @@ class Parser(object):
     def parametro(self):
         # <var_opcional> <identificador> <mais_ident> : <tipo_estendido> <mais_parametros>
         if self.currentToken.category in self.firstOf('var_opcional'):
-            self.var_opicinal()
+            self.var_opcional()
             if self.currentToken.category in self.firstOf('identificador'):
                 self.identificador()
                 if self.currentToken.category in self.firstOf('mais_ident'):
@@ -487,7 +487,7 @@ class Parser(object):
             self.error()
     
     # 21
-    def var_opcinal(self):
+    def var_opcional(self):
         # var | 3
         if self.currentToken.category == 'var':
             self.getToken()
