@@ -32,7 +32,7 @@ class Parser(object):
             'variavel': ['^', '3'],
             'identificador': ['^', '3'],
             'ponteiro_opcional': ['^', '3'],
-            'outros_ident': ['.'],
+            'outros_ident': ['.', '3'],
             'dimensao': ['['],
             'tipo': ['registro'],
             'registro': ['registro'],
@@ -61,6 +61,20 @@ class Parser(object):
             'parcela': ['-', '^', 'identificador', 'numero_inteiro', 'numero_real', '(', '&', 'cadeia_literal']
 
             # Bruno (45-58)
+            'parcela_uniao': ['^', 'IDENT', 'NUM_INT', 'NUM_REAL', '('],
+            'parcela_nao_unario': ['&', 'CADEIA'],
+            'outras_parcelas': ['%', '3'],
+            'chamada_partes': ['(', '.', '3'],
+            'exp_relacional': ['-', 'CADEIA', '3'],
+            'op_opcional': ['=', '<>', '>=', '<=', '>', '<', '3'],
+            'op_relacional': ['=', '<>', '>=', '<=', '>', '<'],
+            'expressao': ['nao', '3'],
+            'op_nao': ['nao', '3'],
+            'termo_logico': ['nao', '3'],
+            'outros_termos_logicos': ['ou', '3'],
+            'outros_fatores_logicos': ['e', '3'],
+            'fator_logico': ['nao', '3'],
+            'parcela_logica': ['verdadeiro', 'falso', '-', 'CADEIA', '3'],
             }
 
     # Helper methods
