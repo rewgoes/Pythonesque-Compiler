@@ -64,7 +64,7 @@ class Parser(object):
             'constantes': ['-', 'numero_inteiro'],
             'mais_constantes': [',', '3'],
             'numero_intervalo': ['-', 'numero_inteiro'],
-            'intervalo_opcional': ['..', '3'],
+            'intervalo_opcional': ['..', '-', 'numero_inteiro', '3'],
             'op_unario': ['-', '3'],
             'exp_aritmetica': ['-', '^', 'identificador', 'numero_inteiro', 'numero_real', '(', '&', 'cadeia_literal'],
             'op_multiplicacao': ['*', '/'],
@@ -76,20 +76,20 @@ class Parser(object):
             'parcela': ['-', '^', 'identificador', 'numero_inteiro', 'numero_real', '(', '&', 'cadeia_literal'],
 
             # Bruno (45-58)
-            'parcela_uniao': ['^', 'IDENT', 'NUM_INT', 'NUM_REAL', '('],
-            'parcela_nao_unario': ['&', 'CADEIA'],
+            'parcela_unario': ['^', 'identificador', 'numero_inteiro', 'numero_real', '('],
+            'parcela_nao_unario': ['&', 'cadeia_literal'],
             'outras_parcelas': ['%', '3'],
-            'chamada_partes': ['(', '.', '3'],
-            'exp_relacional': ['-', 'CADEIA', '3'],
+            'chamada_partes': ['(','.','[','3'],
+            'exp_relacional': ['-', '^', 'identificador', 'numero_inteiro', 'numero_real', '(', '&', 'cadeia_literal'],
             'op_opcional': ['=', '<>', '>=', '<=', '>', '<', '3'],
             'op_relacional': ['=', '<>', '>=', '<=', '>', '<'],
-            'expressao': ['nao', '3'],
+            'expressao': ['nao', 'verdadeiro', 'falso', '-', '^', 'identificador', 'numero_inteiro', 'numero_real', '(', '&', 'cadeia_literal'],
             'op_nao': ['nao', '3'],
-            'termo_logico': ['nao', '3'],
+            'termo_logico': ['nao', 'verdadeiro', 'falso', '-', '^', 'identificador', 'numero_inteiro', 'numero_real', '(', '&', 'cadeia_literal'],
             'outros_termos_logicos': ['ou', '3'],
             'outros_fatores_logicos': ['e', '3'],
-            'fator_logico': ['nao', '3'],
-            'parcela_logica': ['verdadeiro', 'falso', '-', 'CADEIA', '3'],
+            'fator_logico': ['nao', 'verdadeiro', 'falso', '-', '^', 'identificador', 'numero_inteiro', 'numero_real', '(', '&', 'cadeia_literal'],
+            'parcela_logica': ['verdadeiro', 'falso', '-', '^', 'identificador', 'numero_inteiro', 'numero_real', '(', '&', 'cadeia_literal'],
             }
 
     # Helper methods
