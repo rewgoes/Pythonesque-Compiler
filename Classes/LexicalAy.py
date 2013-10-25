@@ -35,14 +35,14 @@ class LexicalAy(object):
         # Float: [0-9]+\.[0-9]+
         # Strings: "[^"]+"
 
-        # Strip tab keys since they're not a problem in this language
-        #line = line.replace('\t', ' ')
-
         # Format of symboltable [ KEY, (NAME, CLASS, TYPE, SCOPE, VALUE, LINE DECLARED, LINE REFERENCED) ]
 
         # Retrieve current line from file
         self.line = linecache.getline(self.file, self.lineNumber)
         self.lineNumber += 1
+
+        # Strip tab keys since they're not a problem in this language
+        self.line = self.line.replace('\t', ' ')
 
         if plist:
             self.listToken = list
@@ -70,8 +70,8 @@ class LexicalAy(object):
             if auto == 'comment':
                 if c != '}':
                     if c == '\n':
-                        self.listToken.append(Token('Linha ' + str(self.lineNumber + 1) + ': ', 'comentario nao fechado', True))
-                        self.listMessage.append('Linha ' + str(self.lineNumber + 1) + ': ', 'comentario nao fechado')
+                        #self.listToken.append(Token('Linha ' + str(self.lineNumber + 1) + ': ', 'comentario nao fechado', True))
+                        self.listMessage.append('Linha ' + str(self.lineNumber + 1) + ': ' + 'comentario nao fechado')
                         auto = 'begin'
                 elif c == '}':
                     auto = 'begin'
@@ -116,7 +116,6 @@ class LexicalAy(object):
                         self.listToken.append(Token(tmp, 'numero_real'))
                         auto = 'begin'
 
-
             # Symbols automaton
             if auto == 'symbol':
                     if tmp+c in self.symtable.table:
@@ -125,8 +124,8 @@ class LexicalAy(object):
                         self.listToken.append(Token(tmp, tmp))
                         auto = 'begin'
                     else:
-                        self.listToken.append(Token('Linha ' + str(self.lineNumber) + ': ' + tmp, 'simbolo nao identificado'))
-                        self.listMessage.append('Linha ' + str(self.lineNumber) + ': ' + tmp, 'simbolo nao identificado')
+                        #self.listToken.append(Token('Linha ' + str(self.lineNumber) + ': ' + tmp, 'simbolo nao identificado'))
+                        self.listMessage.append('Linha ' + str(self.lineNumber) + ': ' + tmp + 'simbolo nao identificado')
                         auto = 'begin'
 
             # Names automaton
@@ -178,11 +177,12 @@ class LexicalAy(object):
                     tmpSizeListToken = len(self.listToken)
                     string = c
                     self.listToken.append(Token('Linha ' + str(self.lineNumber) + ': ' + tmp, 'simbolo nao identificado'))
-                    self.listMessage.append('Linha ' + str(self.lineNumber) + ': ' + tmp, 'simbolo nao identificado')
+                    self.listMessage.append('Linha ' + str(self.lineNumber) + ': ' + tmp + 'simbolo nao identificado')
                 else:
                     tmpSizeListToken = len(self.listToken) - tmpSizeListToken
                     for i in range(tmpSizeListToken):
                         self.listToken.pop()
+                    self.listMessage.pop()
                     self.listToken.append(Token(string, 'cadeia_literal'))
                     string = ''
                     isString = False

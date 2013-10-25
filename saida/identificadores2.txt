@@ -1,5 +1,0 @@
-_ - identificador
-__ - identificador
-___ - identificador
-____ - identificador
-_____ - identificador

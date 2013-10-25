@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-INPUT=entrada/*
-
+INPUT=Arquivos_teste/arquivos_sem_erros/entrada/*
+SAIDA=Arquivos_teste/arquivos_sem_erros/saida
 
 # Remove previous folder
 rm -rf testoutput/
@@ -18,7 +18,7 @@ do
     python pythonesque.py $f testoutput/tested-$fname
 
     # Compare output with sample
-    out=`diff testoutput/tested-$fname saida/$fname`
+    out=`diff testoutput/tested-$fname $SAIDA/$fname`
 
     if [ -n "$out" ] 
     then

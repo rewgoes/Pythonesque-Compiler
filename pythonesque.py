@@ -46,7 +46,7 @@ def main(infile, outfile):
 
     # Open output file
     out = open(outfile, "w")
-    
+
     # Write on the output file
     for message in messageList:
         print(message)
