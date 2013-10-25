@@ -44,8 +44,6 @@ class Parser(object):
              
             # Rafael (16-30)
             'valor_constante': ['cadeia_literal', 'numero_inteiro', 'numero_real', 'verdadeiro', 'falso'],
-            'registro': ['registro'],
-            'declaracao_global': ['procedimento','funcao'],
             'parametros_opcional': ['3','var','^','identificador'],
             'parametro': ['var','^','identificador'],
             'var_opcional': ['var', '3'],
@@ -155,25 +153,34 @@ class Parser(object):
             self.getToken()
             self.variavel()
         elif self.currentToken.name == 'constante':
-            # TODO: IDENT again, what to do with this?
             self.getToken()
-            if self.currentToken.name == ':':
+
+            if self.currentToken.category == 'identificador':
                 self.getToken()
-                self.tipo_basico()
-                if self.currentToken.name == '=':
+
+                if self.currentToken.name == ':':
                     self.getToken()
-                    self.valor_constante()
+                    self.tipo_basico()
+
+                    if self.currentToken.name == '=':
+                        self.getToken()
+                        self.valor_constante()
+                    else:
+                        self.error()
                 else:
                     self.error()
             else:
                 self.error()
 
         elif self.currentToken.name == 'tipo':
-            # IDENT
             self.getToken()
-            if self.currentToken.name == ':':
+            if self.currentToken.category == 'identificador':
                 self.getToken()
-                self.tipo()
+                if self.currentToken.name == ':':
+                    self.getToken()
+                    self.tipo()
+                else:
+                    self.error()
             else:
                 self.error()
         else:
@@ -202,7 +209,7 @@ class Parser(object):
         # <ponteiro_opcional> IDENT <outros_ident> <dimensao>
         if self.currentToken.name in self.firstOf('ponteiro_opcional'):
             self.ponteiro_opcional()
-            if self.currentToken.name == 'identificador':
+            if self.currentToken.category == 'identificador':
                 self.getToken()
                 if self.currentToken.name in self.firstOf('outros_ident'):
                     self.outros_ident()
@@ -226,7 +233,7 @@ class Parser(object):
         # . IDENT <outros_ident> | 3
         if self.currentToken.name == '.':
             self.getToken()
-            if self.currentToken.name == 'identificador':
+            if self.currentToken.category == 'identificador':
                 self.getToken()
                 if self.currentToken.name in self.firstOf('outros_ident'):
                     self.outros_ident()
@@ -293,7 +300,7 @@ class Parser(object):
         # <tipo_basico> | IDENT
         if self.currentToken.name in self.firstOf('tipo_basico'):
             self.tipo_basico()
-        elif self.currentToken.name == 'identificador':
+        elif self.currentToken.category == 'identificador':
             self.getToken()
         else:
             self.error()
@@ -324,7 +331,7 @@ class Parser(object):
         # procedimento IDENT ( <parametros_opcional> ) <declaracoes_locais> <comandos> fim_procedimento
         if self.currentToken.name == 'procedimento':
             self.getToken()
-            if self.currentToken.name == 'identificador':
+            if self.currentToken.category == 'identificador':
                 self.getToken()
                 if self.currentToken.name == '(':
                     self.getToken()
@@ -356,7 +363,7 @@ class Parser(object):
         # | funcao IDENT ( <parametros_opcional> ) : <tipo_estendido> <declaracoes_locais> <comandos> fim_funcao
         elif self.currentToken.name == 'funcao':
             self.getToken()
-            if self.currentToken.name == 'identificador':
+            if self.currentToken.category == 'identificador':
                 self.getToken()
                 if self.currentToken.name == '(':
                     self.getToken()
@@ -424,7 +431,7 @@ class Parser(object):
         # procedimento IDENT ( <parametros_opcional> ) <declaracoes_locais> <comandos> fim_procedimento
         if self.currentToken.name == 'procedimento':
             self.getToken()
-            if self.currentToken.name == 'identificador':
+            if self.currentToken.category == 'identificador':
                 self.getToken()
                 if self.currentToken.name == '(':
                     self.getToken()
@@ -456,7 +463,7 @@ class Parser(object):
         # | funcao IDENT ( <parametros_opcional> ) : <tipo_estendido> <declaracoes_locais> <comandos> fim_funcao
         elif self.currentToken.name == 'funcao':
             self.getToken()
-            if self.currentToken.name == 'identificador':
+            if self.currentToken.category == 'identificador':
                 self.getToken()
                 if self.currentToken.name == '(':
                     self.getToken()
@@ -580,7 +587,7 @@ class Parser(object):
                 if self.currentToken.name in self.firstOf('identificador'):
                     self.identificador()
                     if self.currentToken.name in self.firstOf('mais_ident'):
-                        self.mais_ident()()
+                        self.mais_ident()
                         if self.currentToken.name == ')':
                             self.getToken()
                         else:
@@ -600,7 +607,7 @@ class Parser(object):
                 if self.currentToken.name in self.firstOf('expressao'):
                     self.expressao()
                     if self.currentToken.name in self.firstOf('mais_expressao'):
-                        self.mais_expressao()()
+                        self.mais_expressao()
                         if self.currentToken.name == ')':
                             self.getToken()
                         else:
@@ -663,7 +670,7 @@ class Parser(object):
         # | para IDENT <- <exp_aritmetica> ate <exp_aritmetica> faca <comandos> fim_para
         elif self.currentToken.name == 'para':
             self.getToken()
-            if self.currentToken.name == 'identificador':
+            if self.currentToken.category == 'identificador':
                 self.getToken()
                 if self.currentToken.name == '<-':
                     self.getToken()
@@ -671,7 +678,7 @@ class Parser(object):
                         self.exp_aritmetica()
                         if self.currentToken.name == 'ate':
                             self.getToken()
-                            if self.currentToken-name in self.firstOf('exp_aritmetica'):
+                            if self.currentToken.name in self.firstOf('exp_aritmetica'):
                                 self.exp_aritmetica()
                                 if self.currentToken.name == 'faca':
                                     self.getToken()
@@ -738,7 +745,7 @@ class Parser(object):
         # | ^ IDENT <outros_ident> <dimensao> <- <expressao>
         elif self.currentToken.name == '^':
             self.getToken()
-            if self.currentToken.name == 'identificador':
+            if self.currentToken.category == 'identificador':
                 if self.currentToken.name in self.firstOf('outros_ident'):
                     self.outros_ident()
                     if self.currentToken.name in self.firstOf('dimensao'):
@@ -760,7 +767,7 @@ class Parser(object):
             
             
         # | IDENT <chamada_atribuicao>
-        elif self.currentToken.name == 'identificador':
+        elif self.currentToken.category == 'identificador':
             self.getToken()
             if self.currentToken.name in self.firstOf('chamada_atribuicao'):
                 self.chamada_atribuicao()
@@ -999,7 +1006,7 @@ class Parser(object):
         # ^ IDENT <outros_ident> <dimensao> | IDENT <chamada_partes> | NUM_INT | NUM_REAL | ( <expressao> )
         if self.currentToken.name == '^':
             self.getToken()
-            if self.currentToken.name == 'identificador':
+            if self.currentToken.category == 'identificador':
                 self.getToken()
                 if self.currentToken.name in self.firstOf('outros_ident'):
                     self.outros_ident()
@@ -1012,7 +1019,7 @@ class Parser(object):
             else:
                 self.error()
         
-        elif self.currentToken.name == 'identificador':
+        elif self.currentToken.category == 'identificador':
             self.getToken()
             if self.currentToken.name in self.firstOf('chamada_partes'):
                 self.chamada_partes()
@@ -1039,7 +1046,7 @@ class Parser(object):
         # & IDENT <outros_ident> <dimensao> | CADEIA
         if self.currentToken.name == '&':
             self.getToken()
-            if self.currentToken.name == 'identificador':
+            if self.currentToken.category == 'identificador':
                 self.getToken()
                 if self.currentToken.name in self.firstOf('outros_ident'):
                     self.outros_ident()
