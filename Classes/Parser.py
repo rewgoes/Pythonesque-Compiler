@@ -4,26 +4,27 @@ from Classes.Token import Token
 
 
 class Parser(object):
-    def __init__(self, lexer):
+    def __init__(self, lexer, messageList):
         # Tokens read from input will populate this list
         # Parser will read this list until it's empty
         # When list is empty, parser will call LexicalAy.getToken()
         self.listToken = []
 
+        # List of messages
+        self.listMessage = messageList
+
         # Reference to the lexer object
         self.lexer = lexer
 
         # This variable stores the current token being analysed
-        self.currentToken = Token('a', 'a')
+        self.currentToken = Token('', '')
 
         # This is first-set of non-terminals ("primeiros")
         # It's a dictionary where the non-terminal/terminal is the key
         # And the value is a list with the firsts
         # Use the firstOf method to access the list
-        # TODO: Complete the firstSet list, remember to check if the non-terminal you're doing is already in this list
         self.firstSet = \
-            {# Matheus (01-15)
-             'programa': ['algoritmo', 'declare', 'constante', 'tipo', 'procedimento', 'funcao'],
+            {'programa': ['algoritmo', 'declare', 'constante', 'tipo', 'procedimento', 'funcao'],
              'declaracoes': ['3', 'declare', 'constante', 'tipo', 'procedimento', 'funcao'],
              'declaracao_local_global': ['declare', 'constante', 'tipo', 'procedimento', 'funcao'],
              'declaracao_global': ['procedimento', 'funcao'],
@@ -94,19 +95,26 @@ class Parser(object):
                               '(', '&', 'cadeia_literal'],
              'parcela_logica': ['verdadeiro', 'falso', '-', '^', 'identificador', 'numero_inteiro', 'numero_real', '(',
                                 '&', 'cadeia_literal'],
-            }
+             }
+
+    # Main method
+    def parse(self):
+        self.getToken()
+        self.programa()
+
+        self.listMessage.append("Fim da compilacao")
+        return self.listMessage
 
     # Helper methods
-
     def getToken(self):
         # Obtain the first token on the list
         while not self.listToken:
             self.listToken = self.lexer.getToken()
 
-        self.currentToken = self.listToken.pop()
+        self.currentToken = self.listToken.pop(0)
 
     def error(self):
-        # TODO: Proper error handling
+        self.listMessage.append('Linha ' + str(self.lexer.lineNumber) + ' :erro sintatico proximo a ' + self.currentToken.name + '\n')
         pass
 
     def firstOf(self, term):
@@ -233,8 +241,8 @@ class Parser(object):
                     self.error()
             else:
                 self.error()
-        else:
-            self.error()
+        #else:
+        #   self.error()
     
     # 7
     def ponteiro_opcional(self):
@@ -343,8 +351,8 @@ class Parser(object):
     def valor_constante(self):
         # CADEIA | NUM_INT | NUM_REAL | verdadeiro | falso
         if self.currentToken.category == 'cadeia_literal' or self.currentToken.category == 'numero_inteiro' or \
-                self.currentToken.category == 'numero_real' or self.currentToken.category == 'verdadeiro' or \
-                self.currentToken.category == 'falso':
+                        self.currentToken.category == 'numero_real' or self.currentToken.category == 'verdadeiro' or \
+                        self.currentToken.category == 'falso':
             self.getToken()
     
     # 17
@@ -1088,9 +1096,9 @@ class Parser(object):
     # 51
     def op_relacional(self):
         # = | <> | >= | <= | > | <
-        if self.currentToken.category == '=' or self.currentToken.category == '<>' or\
-                self.currentToken.category == '>=' or self.currentToken.category == '<=' or\
-                self.currentToken.category == '>' or self.currentToken.category == '<':
+        if self.currentToken.category == '=' or self.currentToken.category == '<>' or \
+                        self.currentToken.category == '>=' or self.currentToken.category == '<=' or \
+                        self.currentToken.category == '>' or self.currentToken.category == '<':
             self.getToken()
         else:
             self.error()

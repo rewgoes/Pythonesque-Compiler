@@ -28,14 +28,15 @@ def main(infile, outfile):
     """
     
     global keywords, symbols
-    listTokens = []
+    messageList = []
     
     # Class that creates the symbol table
     symtable = SymTable(keywords, symbols)
 
     # Instantiate the Lexical Analyser Class and assigns the keytable and symtable to it
-    ly = LexicalAy(symtable, infile)
-    parser = Parser(ly)
+    ly = LexicalAy(symtable, infile, messageList)
+    parser = Parser(ly, messageList)
+    parser.parse()
 
     # Read line from file and send it to LexicalAy.getToken() method
     #for line in f :
@@ -47,15 +48,8 @@ def main(infile, outfile):
     out = open(outfile, "w")
     
     # Write on the output file
-    for token in parser.listToken:
-        if token.bad:
-            print('{0}{1}'.format(token.name, token.category))
-            # write output in file
-            #out.write('{0}{1}\n'.format(token.name, token.category))
-        else:
-            print('{0} - {1}'.format(token.name, token.category))
-            # write output in file
-            #out.write('{0} - {1}\n'.format(token.name, token.category))
+    for message in messageList:
+        print(message)
             
     # Close input and output file
     #f.close()
