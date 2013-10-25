@@ -24,25 +24,40 @@ class Parser(object):
         # TODO: Complete the firstSet list, remember to check if the non-terminal you're doing is already in this list
         self.firstSet = \
             {  # Matheus (01-15)
-            'programa':  ['3', 'declare', 'constante', 'tipo', 'procedimento', 'funcao'],
+            'programa':  ['algoritmo', 'declare', 'constante', 'tipo', 'procedimento', 'funcao'],
             'declaracoes': ['3', 'declare', 'constante', 'tipo', 'procedimento', 'funcao' ],
-            'declaracao_local_global': ['3', 'declare', 'constante', 'tipo', 'procedimento', 'funcao' ],
-            'declaracao_global': ['declare', 'constante', 'tipo'],
-            'declaracao_local': ['procedimento, funcao'],
-            'variavel': ['^', '3'],
-            'identificador': ['^', '3'],
+            'declaracao_local_global': ['declare', 'constante', 'tipo', 'procedimento', 'funcao' ],
+            'declaracao_global': ['procedimento', 'funcao'],
+            'declaracao_local': ['declare', 'constante', 'tipo'],
+            'variavel': ['^', 'identificador'],
+            'identificador': ['^', 'identificador'],
             'ponteiro_opcional': ['^', '3'],
             'outros_ident': ['.', '3'],
-            'dimensao': ['['],
-            'tipo': ['registro'],
+            'dimensao': ['[', '3'],
+            'tipo': ['registro', '^', 'literal', 'inteiro', 'real', 'logico', 'identificador'],
             'registro': ['registro'],
             'mais_ident': [',', '3'],
-            'mais_variaveis': ['^', '3'],
-            'tipo_basico': ['cadeia_literal', 'numero_inteiro', 'numero_real', 'logico'],
-            'tipo_basico_ident': ['cadeia_literal', 'numero_inteiro', 'numero_real', 'logico', 'identificador'],  # How to handle this `IDENT` ?
-            'tipo_estendido': ['^', '3'],
+            'mais_variaveis': ['^', 'identificador', '3'],
+            'tipo_basico': ['literal', 'inteiro', 'real', 'logico'],
+            'tipo_basico_ident': ['literal', 'inteiro', 'real', 'logico', 'identificador'],  # How to handle this `IDENT` ?
+            'tipo_estendido': ['^', 'literal', 'inteiro', 'real', 'logico', 'identificador'],
              
             # Rafael (16-30)
+            'valor_constante': ['cadeia_literal', 'numero_inteiro', 'numero_real', 'verdadeiro', 'falso'],
+            'registro': ['registro'],
+            'declaracao_global': ['procedimento','funcao'],
+            'parametros_opcional': ['3','var','^','identificador'],
+            'parametro': ['var','^','identificador'],
+            'var_opcional': ['var', '3'],
+            'mais_parametros': [',', '3'],
+            'declaracoes_locais': ['3', 'declare', 'constante', 'tipo'],
+            'corpo': ['leia','escreva','se','caso','para','enquanto','faca','^','identificador','retorne','declare', 'constante', 'tipo','3'],
+            'comandos': ['leia','escreva','se','caso','para','enquanto','faca','^','identificador','retorne','3'],
+            'cmd': ['leia','escreva','se','caso','para','enquanto','faca','^','identificador','retorne'],
+            'mais_expressao': [',','3'],
+            'senao_opcional': ['senao','3'],
+            'chamada_atribuicao': ['(','.','[','<-'],
+            'selecao': ['-', 'numero_inteiro'],
              
             # Thiago (31-44)
             'mais_selecao': ['-', 'numero_inteiro', '3'],
@@ -58,7 +73,7 @@ class Parser(object):
             'outros_termos': ['+', '-', '3'],
             'fator': ['-', '^', 'identificador', 'numero_inteiro', 'numero_real', '(', '&', 'cadeia_literal'],
             'outros_fatores': ['*', '/', '3'],
-            'parcela': ['-', '^', 'identificador', 'numero_inteiro', 'numero_real', '(', '&', 'cadeia_literal']
+            'parcela': ['-', '^', 'identificador', 'numero_inteiro', 'numero_real', '(', '&', 'cadeia_literal'],
 
             # Bruno (45-58)
             'parcela_uniao': ['^', 'IDENT', 'NUM_INT', 'NUM_REAL', '('],
