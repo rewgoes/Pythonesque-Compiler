@@ -4,7 +4,11 @@ from Classes.Token import Token
 
 
 class Parser(object):
-    def __init__(self, lexer, Error):
+    def __init__(self, lexer, error):
+        """
+        :param lexer: instance of lexer class
+        :param error: instance of error class
+        """
         # Tokens read from input will populate this list
         # Parser will read this list until it's empty
         # When list is empty, parser will call LexicalAy.getToken()
@@ -17,7 +21,7 @@ class Parser(object):
         self.currentToken = Token('', '')
 
         # Error instance
-        self.errorRef = Error
+        self.errorRef = error
 
         # This is first-set of non-terminals ("primeiros")
         # It's a dictionary where the non-terminal/terminal is the key
@@ -40,10 +44,7 @@ class Parser(object):
              'mais_variaveis': ['^', 'identificador', '3'],
              'tipo_basico': ['literal', 'inteiro', 'real', 'logico'],
              'tipo_basico_ident': ['literal', 'inteiro', 'real', 'logico', 'identificador'],
-             # How to handle this `IDENT` ?
              'tipo_estendido': ['^', 'literal', 'inteiro', 'real', 'logico', 'identificador'],
-
-             # Rafael (16-30)
              'valor_constante': ['cadeia_literal', 'numero_inteiro', 'numero_real', 'verdadeiro', 'falso'],
              'parametros_opcional': ['3', 'var', '^', 'identificador'],
              'parametro': ['var', '^', 'identificador'],
@@ -59,8 +60,6 @@ class Parser(object):
              'senao_opcional': ['senao', '3'],
              'chamada_atribuicao': ['(', '.', '[', '<-'],
              'selecao': ['-', 'numero_inteiro'],
-
-             # Thiago (31-44)
              'mais_selecao': ['-', 'numero_inteiro', '3'],
              'constantes': ['-', 'numero_inteiro'],
              'mais_constantes': [',', '3'],
@@ -75,8 +74,6 @@ class Parser(object):
              'fator': ['-', '^', 'identificador', 'numero_inteiro', 'numero_real', '(', '&', 'cadeia_literal'],
              'outros_fatores': ['*', '/', '3'],
              'parcela': ['-', '^', 'identificador', 'numero_inteiro', 'numero_real', '(', '&', 'cadeia_literal'],
-
-             # Bruno (45-58)
              'parcela_unario': ['^', 'identificador', 'numero_inteiro', 'numero_real', '('],
              'parcela_nao_unario': ['&', 'cadeia_literal'],
              'outras_parcelas': ['%', '3'],
@@ -111,7 +108,7 @@ class Parser(object):
         self.currentToken = self.listToken.pop(0)
 
     def error(self):
-        lineN = str(self.lexer.lineNumber - 1)
+        lineN = str(self.lexer.lineNumber)
         self.errorRef.parserError('Linha ' + lineN + ': erro sintatico proximo a ' + self.currentToken.name)
 
     def firstOf(self, term):
@@ -123,7 +120,6 @@ class Parser(object):
             return term
 
     # Grammar rules
-    # Matheus (01-15)
     # 1
     def programa(self):
         # <declaracoes> algoritmo <corpo> fim_algoritmo
@@ -262,6 +258,8 @@ class Parser(object):
             self.registro()
         elif self.currentToken.category in self.firstOf('tipo_estendido'):
             self.tipo_estendido()
+        else:
+            self.error()
     
     # 11
     def mais_ident(self):
@@ -304,7 +302,6 @@ class Parser(object):
         self.ponteiro_opcional()
         self.tipo_basico_ident()
 
-    # Rafael (16-30)
     # 16
     def valor_constante(self):
         # CADEIA | NUM_INT | NUM_REAL | verdadeiro | falso
@@ -644,7 +641,6 @@ class Parser(object):
         else:
             self.error()
 
-    # Thiago (31-44)
     # 31
     def mais_selecao(self):
         # <selecao> | 3
@@ -751,8 +747,6 @@ class Parser(object):
             self.op_unario()
             self.parcela_unario()
 
-
-    # Bruno (45-58)
     # 45
     def parcela_unario(self):
         # ^ IDENT <outros_ident> <dimensao> | IDENT <chamada_partes> | NUM_INT | NUM_REAL | ( <expressao> )

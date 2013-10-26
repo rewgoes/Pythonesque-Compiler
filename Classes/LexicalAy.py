@@ -1,7 +1,4 @@
-__author__ = 'Matheus'
-__author__ = 'Rafael'
-__author__ = 'Thiago'
-__author__ = 'Bruno'
+__author__ = 'Matheus_Rafael_Thiago_Bruno'
 
 from Classes.Token import Token
 import linecache
@@ -12,17 +9,32 @@ class LexicalAy(object):
     def __init__(self, symtable, file, error):
         # Attributes initialization
         """
-        :param symtable: symbol table reference
-        :param file: open file
+        :param symtable: Symbol table class object reference
+        :param file: path to the input file, not opened
+        :param error: Error class object reference
         """
         self.file = file
+
+        # Initialisation of class attributes
+        # Line to be analyzed
         self.line = ''
+
+        # List of tokens found on line
         self.listToken = []
+
+        # List of error messages
         self.listMessage = []
+
+        # Reference to Error class
         self.errorRef = error
-        self.previousToken = ""
+
+        # Current lineNumber
         self.lineNumber = 0
+
+        # Current scope
         self.scope = 1
+
+        # Reference do SymTable class
         self.symtable = symtable
 
     def getToken(self, strerr=None, plist=None):
@@ -38,11 +50,19 @@ class LexicalAy(object):
 
         # Format of symboltable [ KEY, (NAME, CLASS, TYPE, SCOPE, VALUE, LINE DECLARED, LINE REFERENCED) ]
 
+        # Clear previous lines from memory
+        linecache.clearcache()
+
         # Retrieve current line from file
-        self.line = linecache.getline(self.file, self.lineNumber)
+        self.line = linecache.getline(self.file, self.lineNumber + 1)
+
+        # EOF
+        if not self.line:
+            self.listToken.append(Token('EOF', 'EOF'))
+            return self.listToken
 
         # Strip tab keys since they're not a problem in this language
-        self.line = self.line.replace('\t', ' ')
+        # self.line = self.line.replace('\t', ' ')
 
         if plist:
             self.listToken = list
@@ -70,8 +90,8 @@ class LexicalAy(object):
             if auto == 'comment':
                 if c != '}':
                     if c == '\n':
-                        #self.listToken.append(Token('Linha ' + str(self.lineNumber + 1) + ': ', 'comentario nao fechado', True))
-                        self.errorRef.lexerError('Linha ' + str(self.lineNumber + 1) + ': ' + 'comentario nao fechado')
+                        if not isString:
+                            self.errorRef.lexerError('Linha ' + str(self.lineNumber + 2) + ': ' + 'comentario nao fechado')
                         auto = 'begin'
                 elif c == '}':
                     auto = 'begin'
@@ -124,8 +144,8 @@ class LexicalAy(object):
                         self.listToken.append(Token(tmp, tmp))
                         auto = 'begin'
                     else:
-                        #self.listToken.append(Token('Linha ' + str(self.lineNumber) + ': ' + tmp, 'simbolo nao identificado'))
-                        self.errorRef.lexerError('Linha ' + str(self.lineNumber) + ': ' + tmp + ' - simbolo nao identificado')
+                        if not isString:
+                            self.errorRef.lexerError('Linha ' + str(self.lineNumber + 1) + ': ' + tmp + ' - simbolo nao identificado')
                         auto = 'begin'
 
             # Names automaton
@@ -176,13 +196,13 @@ class LexicalAy(object):
                     isString = True
                     tmpSizeListToken = len(self.listToken)
                     string = c
-                    self.listToken.append(Token('Linha ' + str(self.lineNumber) + ': ' + tmp, 'simbolo nao identificado'))
-                    self.listMessage.append('Linha ' + str(self.lineNumber) + ': ' + tmp + ' - simbolo nao identificado')
-                    # TODO: Error class proper handling
+                    self.listToken.append(Token('Linha ' + str(self.lineNumber + 1) + ': ' + tmp, 'simbolo nao identificado', True))
+                    self.listMessage.append('Linha ' + str(self.lineNumber + 1) + ': ' + tmp + ' - simbolo nao identificado')
                 else:
                     tmpSizeListToken = len(self.listToken) - tmpSizeListToken
                     for i in range(tmpSizeListToken):
                         self.listToken.pop()
+
                     self.listMessage.pop()
 
                     self.listToken.append(Token(string, 'cadeia_literal'))

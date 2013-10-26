@@ -20,16 +20,12 @@ symbols = [':', ',', '^', '(', ')', '-', '%', '*', '/', '+', '&', '=', '<', '>',
 
 
 def main(infile, outfile):
-    """(file) -> None
-    
-    Create reserved words and symbols table 
-    
-    :param infile:
-    :param outfile
+    """
+    :param infile: input file path
+    :param outfile: output file path
     """
     
     global keywords, symbols
-    messageList = []
 
      # Open output file
     out = open(outfile, "w")
@@ -37,29 +33,25 @@ def main(infile, outfile):
     # Class that creates the symbol table
     symtable = SymTable(keywords, symbols)
 
-    # Error class
+    # Instantiate Error class
     error = Error(out)
 
     # Instantiate the Lexical Analyser Class and assigns the keytable and symtable to it
     ly = LexicalAy(symtable, infile, error)
+
+    # Instantiate Parser class
     parser = Parser(ly, error)
+
+    # Parse!
     parser.parse()
 
-    # Read line from file and send it to LexicalAy.getToken() method
-    #for line in f :
-    #    tmpList = ly.getToken()
-    #    for token in tmpList:
-    #        listTokens.append(token)
-
     # Write on the output file
-    #print('Fim da compilacao')
     out.write('Fim da compilacao\n')
             
-    # Close input and output file
-    #f.close()
+    # Close output file
+    # (input file doesn't need to be closed since we're using linecache)
     out.close()
 
-    #ly.symtable.printTable()
 
 if __name__ == '__main__':
     # Get command line arguments
