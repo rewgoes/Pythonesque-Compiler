@@ -4,14 +4,11 @@ from Classes.Token import Token
 
 
 class Parser(object):
-    def __init__(self, lexer, messageList, Error):
+    def __init__(self, lexer, Error):
         # Tokens read from input will populate this list
         # Parser will read this list until it's empty
         # When list is empty, parser will call LexicalAy.getToken()
         self.listToken = []
-
-        # List of messages
-        self.listMessage = messageList
 
         # Reference to the lexer object
         self.lexer = lexer
@@ -104,9 +101,6 @@ class Parser(object):
     def parse(self):
         self.getToken()
         self.programa()
-
-        self.listMessage.append("Fim da compilacao")
-        return self.listMessage
 
     # Helper methods
     def getToken(self):

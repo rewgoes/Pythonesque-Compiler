@@ -42,7 +42,7 @@ def main(infile, outfile):
 
     # Instantiate the Lexical Analyser Class and assigns the keytable and symtable to it
     ly = LexicalAy(symtable, infile, error)
-    parser = Parser(ly, messageList, error)
+    parser = Parser(ly, error)
     parser.parse()
 
     # Read line from file and send it to LexicalAy.getToken() method
@@ -52,8 +52,8 @@ def main(infile, outfile):
     #        listTokens.append(token)
 
     # Write on the output file
-    for message in messageList:
-        print(message)
+    #print('Fim da compilacao')
+    out.write('Fim da compilacao\n')
             
     # Close input and output file
     #f.close()

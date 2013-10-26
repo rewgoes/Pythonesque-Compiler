@@ -11,13 +11,13 @@ class Error(object):
         self.outfile = outfile
 
     def lexerError(self, message):
-        print(message + '\nFim da compilacao')
+        #print(message + '\nFim da compilacao')
         self.outfile.write(message)
         self.outfile.write('\nFim da compilacao\n')
         sys.exit(0)
 
     def parserError(self, message):
-        print(message + '\nFim da compilacao')
+        #print(message + '\nFim da compilacao')
         self.outfile.write(message)
         self.outfile.write('\nFim da compilacao\n')
         sys.exit(0)
