@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-INPUT=Arquivos_teste/arquivos_sem_erros/entrada/*
-SAIDA=Arquivos_teste/arquivos_sem_erros/saida
+INPUT=Arquivos_teste/arquivos_com_1_erro/entrada/*
+SAIDA=Arquivos_teste/arquivos_com_1_erro/saida
 
 # Remove previous folder
 rm -rf testoutput/

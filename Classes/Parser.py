@@ -4,7 +4,7 @@ from Classes.Token import Token
 
 
 class Parser(object):
-    def __init__(self, lexer, messageList):
+    def __init__(self, lexer, messageList, Error):
         # Tokens read from input will populate this list
         # Parser will read this list until it's empty
         # When list is empty, parser will call LexicalAy.getToken()
@@ -18,6 +18,9 @@ class Parser(object):
 
         # This variable stores the current token being analysed
         self.currentToken = Token('', '')
+
+        # Error instance
+        self.errorRef = Error
 
         # This is first-set of non-terminals ("primeiros")
         # It's a dictionary where the non-terminal/terminal is the key
@@ -114,8 +117,7 @@ class Parser(object):
         self.currentToken = self.listToken.pop(0)
 
     def error(self):
-        self.listMessage.append('Linha ' + str(self.lexer.lineNumber) + ' :erro sintatico proximo a ' + self.currentToken.name + '\n')
-        pass
+        self.errorRef.message('Linha ' + str(self.lexer.lineNumber) + ' :erro sintatico proximo a ' + self.currentToken.name + '\n')
 
     def firstOf(self, term):
         if term in self.firstSet:
@@ -148,7 +150,6 @@ class Parser(object):
     def declaracoes(self):
         # <decl_local_global> <declaracoes> | 3
         while self.currentToken.category in self.firstOf('declaracoes'):  # [?]
-            self.getToken()
             self.decl_local_global()
             self.declaracoes()
 
@@ -368,7 +369,7 @@ class Parser(object):
                 self.getToken()
                 if self.currentToken.category == '(':
                     self.getToken()
-                    self.parametros_opicinal()
+                    self.parametros_opcional()
 
                     if self.currentToken.category == ')':
                         self.getToken()
@@ -670,7 +671,7 @@ class Parser(object):
 
     # 34
     def numero_intervalo(self):
-        # <op_unario> NUM_INT <intervalo_opicional>
+        # <op_unario> NUM_INT <intervalo_opcional>
         self.op_unario()
 
         if self.currentToken.category == 'numero_inteiro':
@@ -826,7 +827,8 @@ class Parser(object):
             else:
                 self.error()
 
-        elif self.currentToken.category in self.firstOf('outros_ident'):
+        elif self.currentToken.category in self.firstOf('outros_ident') or\
+                self.currentToken.category in self.firstOf('dimensao'):
             self.outros_ident()
             self.dimensao()
 

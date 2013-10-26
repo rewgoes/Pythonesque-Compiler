@@ -9,7 +9,7 @@ import linecache
 
 class LexicalAy(object):
     # Constructor
-    def __init__(self, symtable, file, messageList):
+    def __init__(self, symtable, file, Error):
         # Attributes initialization
         """
         :param symtable: symbol table reference
@@ -18,7 +18,7 @@ class LexicalAy(object):
         self.file = file
         self.line = ''
         self.listToken = []
-        self.listMessage = messageList
+        self.errorRef = Error
         self.previousToken = ""
         self.lineNumber = 0
         self.scope = 1
@@ -71,7 +71,7 @@ class LexicalAy(object):
                 if c != '}':
                     if c == '\n':
                         #self.listToken.append(Token('Linha ' + str(self.lineNumber + 1) + ': ', 'comentario nao fechado', True))
-                        self.listMessage.append('Linha ' + str(self.lineNumber + 1) + ': ' + 'comentario nao fechado')
+                        self.errorRef.lexerError('Linha ' + str(self.lineNumber + 1) + ': ' + 'comentario nao fechado')
                         auto = 'begin'
                 elif c == '}':
                     auto = 'begin'
@@ -125,7 +125,7 @@ class LexicalAy(object):
                         auto = 'begin'
                     else:
                         #self.listToken.append(Token('Linha ' + str(self.lineNumber) + ': ' + tmp, 'simbolo nao identificado'))
-                        self.listMessage.append('Linha ' + str(self.lineNumber) + ': ' + tmp + 'simbolo nao identificado')
+                        self.errorRef.lexerError('Linha ' + str(self.lineNumber) + ': ' + tmp + 'simbolo nao identificado')
                         auto = 'begin'
 
             # Names automaton
@@ -178,11 +178,13 @@ class LexicalAy(object):
                     string = c
                     self.listToken.append(Token('Linha ' + str(self.lineNumber) + ': ' + tmp, 'simbolo nao identificado'))
                     self.listMessage.append('Linha ' + str(self.lineNumber) + ': ' + tmp + 'simbolo nao identificado')
+                    # TODO: Error class proper handling
                 else:
                     tmpSizeListToken = len(self.listToken) - tmpSizeListToken
                     for i in range(tmpSizeListToken):
                         self.listToken.pop()
                     self.listMessage.pop()
+
                     self.listToken.append(Token(string, 'cadeia_literal'))
                     string = ''
                     isString = False
