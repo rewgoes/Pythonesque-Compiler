@@ -40,7 +40,6 @@ class LexicalAy(object):
 
         # Retrieve current line from file
         self.line = linecache.getline(self.file, self.lineNumber)
-        self.lineNumber += 1
 
         # Strip tab keys since they're not a problem in this language
         self.line = self.line.replace('\t', ' ')
@@ -126,7 +125,7 @@ class LexicalAy(object):
                         auto = 'begin'
                     else:
                         #self.listToken.append(Token('Linha ' + str(self.lineNumber) + ': ' + tmp, 'simbolo nao identificado'))
-                        self.errorRef.lexerError('Linha ' + str(self.lineNumber) + ': ' + tmp + 'simbolo nao identificado')
+                        self.errorRef.lexerError('Linha ' + str(self.lineNumber) + ': ' + tmp + ' - simbolo nao identificado')
                         auto = 'begin'
 
             # Names automaton
@@ -178,7 +177,7 @@ class LexicalAy(object):
                     tmpSizeListToken = len(self.listToken)
                     string = c
                     self.listToken.append(Token('Linha ' + str(self.lineNumber) + ': ' + tmp, 'simbolo nao identificado'))
-                    self.listMessage.append('Linha ' + str(self.lineNumber) + ': ' + tmp + 'simbolo nao identificado')
+                    self.listMessage.append('Linha ' + str(self.lineNumber) + ': ' + tmp + ' - simbolo nao identificado')
                     # TODO: Error class proper handling
                 else:
                     tmpSizeListToken = len(self.listToken) - tmpSizeListToken
@@ -191,10 +190,14 @@ class LexicalAy(object):
                     isString = False
                 auto = 'begin'
 
+        #End of analysis, increment lineNumber
+        self.lineNumber += 1
+
         # Check whether the error message list is empty or there is a message there indicating
         # that some string wasn't properly closed thus indicating that there's a error that must
         # be treated by the Error class.
         if self.listMessage:
-            self.errorRef.lexerError(self.listMessage.pop)
+            msg = str(self.listMessage.pop())
+            self.errorRef.lexerError(msg)
 
         return self.listToken
