@@ -9,7 +9,7 @@ import linecache
 
 class LexicalAy(object):
     # Constructor
-    def __init__(self, symtable, file, Error):
+    def __init__(self, symtable, file, error):
         # Attributes initialization
         """
         :param symtable: symbol table reference
@@ -18,7 +18,8 @@ class LexicalAy(object):
         self.file = file
         self.line = ''
         self.listToken = []
-        self.errorRef = Error
+        self.listMessage = []
+        self.errorRef = error
         self.previousToken = ""
         self.lineNumber = 0
         self.scope = 1
@@ -189,5 +190,11 @@ class LexicalAy(object):
                     string = ''
                     isString = False
                 auto = 'begin'
+
+        # Check whether the error message list is empty or there is a message there indicating
+        # that some string wasn't properly closed thus indicating that there's a error that must
+        # be treated by the Error class.
+        if self.listMessage:
+            self.errorRef.lexerError(self.listMessage.pop)
 
         return self.listToken

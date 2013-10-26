@@ -3,6 +3,7 @@ from Classes import Parser
 from Classes.LexicalAy import LexicalAy
 from Classes.SymTable import SymTable
 from Classes.Parser import Parser
+from Classes.Error import Error
 
 
 # List of reserved words
@@ -29,13 +30,19 @@ def main(infile, outfile):
     
     global keywords, symbols
     messageList = []
+
+     # Open output file
+    out = open(outfile, "w")
     
     # Class that creates the symbol table
     symtable = SymTable(keywords, symbols)
 
+    # Error class
+    error = Error(out)
+
     # Instantiate the Lexical Analyser Class and assigns the keytable and symtable to it
-    ly = LexicalAy(symtable, infile, messageList)
-    parser = Parser(ly, messageList)
+    ly = LexicalAy(symtable, infile, error)
+    parser = Parser(ly, messageList, error)
     parser.parse()
 
     # Read line from file and send it to LexicalAy.getToken() method
@@ -43,9 +50,6 @@ def main(infile, outfile):
     #    tmpList = ly.getToken()
     #    for token in tmpList:
     #        listTokens.append(token)
-
-    # Open output file
-    out = open(outfile, "w")
 
     # Write on the output file
     for message in messageList:

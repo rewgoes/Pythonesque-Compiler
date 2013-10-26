@@ -1,6 +1,7 @@
 __author__ = 'matheus_rafael_thiago_bruno'
 
 from Classes.Token import Token
+from Classes.Error import Error
 
 
 class Parser(object):
@@ -117,7 +118,8 @@ class Parser(object):
         self.currentToken = self.listToken.pop(0)
 
     def error(self):
-        self.errorRef.message('Linha ' + str(self.lexer.lineNumber) + ' :erro sintatico proximo a ' + self.currentToken.name + '\n')
+        lineN = str(self.lexer.lineNumber)
+        self.errorRef.parserError('Linha ' + lineN + ' :erro sintatico proximo a ' + self.currentToken.name + '\n')
 
     def firstOf(self, term):
         if term in self.firstSet:
