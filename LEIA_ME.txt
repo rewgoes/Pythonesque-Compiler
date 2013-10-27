@@ -8,21 +8,22 @@ Grupo:
 	Bruno de Mattos e Silva		379484
 	Matheus Fernando Finatti	379603
 	Rafael Eduardo Wolf de Goes	379441
-	Thiago Neves Romero		379654
+	Thiago Neves Romero			379654
 
-Trabalho 1: Analisador Léxico
+Trabalho 2: Analisador Sintático
 
-	a) O trabalho foi feito na linguagem python. 
-	   O interpretador do Python2.7 pode ser baixado do endereço (http://python.org/download/).
-	   Há versões para Windows, Linux e Mac OS X. Geralmente, os sistemas Linux já vem com o interpretador do python instalado.
-	   Se estiver utilizando o Windows, após a instalação deve-se adicionar o caminho de onde o interpretador foi instalado no ambiente de variávies do sistema.
+	a)	O trabalho foi feito na linguagem python. 
+		O interpretador do Python2.7 pode ser baixado do endereço (http://python.org/download/).
+		Há versões para Windows, Linux e Mac OS X. Geralmente, os sistemas Linux já vem com o interpretador do python instalado.
+		Se estiver utilizando o Windows, após a instalação deve-se adicionar o caminho de onde o interpretador foi instalado no ambiente de variávies do sistema.
 
-	b) Para executar o programa tenha no seu diretório o arquivo Pythonesque.py, a pasta Classes (contendo os arquivos Token.py, SymTable.py e LexicalAy.py). Utilize a seguinte instrução para executar.
-	python Pythonesque.py nome_arquivo_entrada nome_arquivo_saida
+	b)	Para executar o programa tenha no seu diretório o arquivo Pythonesque.py, a pasta Classes (contendo os arquivos Token.py, SymTable.py, LexicalAy.py, Parser.py e Erro.py). Utilize a seguinte instrução para executar.
+		python Pythonesque.py nome_arquivo_entrada nome_arquivo_saida
 
-	nome_arquivo_entrada	= Substituir pelo nome do arquivo que contém o código da linguagem fonte.
-	nome_arquivo_saida	= Substituir pelo nome do arquivo que irá conter os lexemas encontrados do código da linguagem fonte.
+		nome_arquivo_entrada	= Substituir pelo nome do arquivo que contém o código da linguagem fonte.
+		nome_arquivo_saida	= Substituir pelo nome do arquivo que irá conter os lexemas encontrados do código da linguagem fonte.
 
-	c) Você pode utilizar a ferramenta de teste automatizada. Os arquivos de entrada devem estar numa psta chamada "entrada/" e os arquivos de saída em uma pasta "saida/". Para rodar basta executar o script "test.sh".
-	
-	Se a comparação da saída gerada for igual a saída esperada, o script irá mostrar "nome_do_arquivo OK". Caso contrário irá mostrar "Error on nome_do_arquivo". Você pode verificar as saídas geradas na pasta "testoutput/".
+	c)	Para os arquivos de testes fornecidos pelo professor. Organizados num diretório 'Arquivos_teste', contendo dois sub-diretórios: 'arquivos_com_1_erro' e 'arquivos_sem_erros'. Sendo que estes sub-diretórios tem uma pasta de 'entrada' contendo os arquivos de entrada e uma pasta 'saida' contendo os arquvis de saída esperada. 
+		Você pode utilizar a ferramenta de teste automatizada. Para rodar basta executar o script "test.sh"(./test.sh).
+		
+		Se a comparação da saída gerada for igual a saída esperada, o script irá mostrar "nome_do_arquivo OK". Caso contrário irá mostrar "Error on nome_do_arquivo". Você pode verificar as saídas geradas na pasta "testoutput/".
