@@ -1,4 +1,4 @@
-LEIA_ME.txt
+LEIA_ME_T2.txt
 
 Universidade Federal de São Carlos
 Departamento de Computação
