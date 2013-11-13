@@ -1,0 +1,2 @@
+Linha 29: identificador simplifiqueRacional já declarado anteriormente
+Fim da compilacao
