@@ -33,8 +33,8 @@ class Parser(object):
         self.tempIdent = []
         self.ponteiroOpc = False
         self.declaring = False
-        self.tipoRecebe = ""
-        self.variavelRecebe = ""
+        self.returnType = ""
+        self.returnVar = ""
 
         # Error list
         self.listError = []
@@ -627,8 +627,8 @@ class Parser(object):
                 if self.currentToken.name not in self.symtable.table:
                     self.listError.append("Linha " + str(self.lexer.lineNumber) + ': identificador ' + self.currentToken.name + ' nao declarado')
                 else:
-                    self.tipoRecebe = self.symtable.table[self.currentToken.name]['type']
-                    self.variavelRecebe = self.currentToken.name
+                    self.returnType = self.symtable.table[self.currentToken.name]['type']
+                    self.returnVar = self.currentToken.name
                 self.getToken()
                 self.outros_ident()
                 self.dimensao()
@@ -636,8 +636,8 @@ class Parser(object):
                 if self.currentToken.token == '<-':
                     self.getToken()
                     self.expressao()
-                    self.tipoRecebe = ""
-                    self.variavelRecebe = ""
+                    self.returnType = ""
+                    self.returnVar = ""
                 else:
                     self.error()
 
@@ -649,18 +649,18 @@ class Parser(object):
             if self.currentToken.name not in self.symtable.table:
                     self.listError.append("Linha " + str(self.lexer.lineNumber) + ': identificador ' + self.currentToken.name + ' nao declarado')
             else:
-                self.tipoRecebe = self.symtable.table[self.currentToken.name]['type']
-                self.variavelRecebe = self.currentToken.name
+                self.returnType = self.symtable.table[self.currentToken.name]['type']
+                self.returnVar = self.currentToken.name
             lineN = self.lexer.lineNumber
             self.getToken()
             ret = self.chamada_atribuicao()
-            if ret != self.tipoRecebe:
-                if ret == "inteiro" and self.tipoRecebe == "real":
+            if ret != self.returnType:
+                if ret == "inteiro" and self.returnType == "real":
                     pass
                 else:
-                    self.listError.append("Linha " + str(lineN) + ": atribuicao nao compativel para " + self.variavelRecebe)
-            self.tipoRecebe = ""
-            self.variavelRecebe = ""
+                    self.listError.append("Linha " + str(lineN) + ": atribuicao nao compativel para " + self.returnVar)
+            self.returnType = ""
+            self.returnVar = ""
 
         # | retorne <expressao>
         elif self.currentToken.token == 'retorne':
@@ -772,10 +772,8 @@ class Parser(object):
         # <termo> <outros_termos>
         ret1 = self.termo()
         ret2 = self.outros_termos()
-        if ret2 == "real" or ret1 == "real":
-            return "real"
-        elif ret1 == "inteiro" or ret2 == "inteiro":
-            return "inteiro"
+        if ret2 == "error":
+            return "error"
         else:
             return ret1
 
@@ -800,10 +798,8 @@ class Parser(object):
         # <fator> <outros_fatores>
         ret1 = self.fator()
         ret2 = self.outros_fatores()
-        if ret2 == "real" or ret1 == "real":
-            return "real"
-        elif ret1 == "inteiro" or ret2 == "inteiro":
-            return "inteiro"
+        if ret2 == "error":
+            return "error"
         else:
             return ret1
 
@@ -814,12 +810,8 @@ class Parser(object):
         while self.currentToken.token in self.firstOf('op_adicao'):
             self.op_adicao()
             ret2 = self.termo()
-            if ret2 == "real":
-                retf = "real"
-            elif ret2 == "inteiro" and retf != "real":
-                retf = "inteiro"
-            elif ret2 != "inteiro" and retf != "real":
-                retf = ret2
+            if ret2 == "error":
+                retf = "error"
         return retf
 
     # 42
@@ -827,10 +819,8 @@ class Parser(object):
         # <parcela> <outras_parcelas>
         ret1 = self.parcela()
         ret2 = self.outras_parcelas()
-        if ret2 == "real" or ret1 == "real":
-            return "real"
-        elif ret2 == "inteiro" or ret1 == "inteiro":
-            return "inteiro"
+        if ret2 == "error":
+            return "error"
         else:
             return ret1
 
@@ -842,10 +832,8 @@ class Parser(object):
             self.op_multiplicacao()
             ret1 = self.fator()
             ret2 = self.outros_termos()
-            if ret1 == "real" or ret2 == "real":
-                retf = "real"
-            else:
-                retf = "inteiro"
+            if ret1 == "error" or ret2 == "error":
+                retf = "error"
         return retf
 
     # 44
@@ -876,19 +864,30 @@ class Parser(object):
                 ok = False
             tmpToken = self.currentToken.name
             self.getToken()
-            ret = self.chamada_partes()
+            self.chamada_partes()
             if ok:
-                return self.symtable.table[tmpToken]['type']
+                if self.returnType == "real" and (self.symtable.table[tmpToken]['type'] == "real" or self.symtable.table[tmpToken]['type'] == "inteiro"):
+                    return self.symtable.table[tmpToken]['type']
+                elif self.returnType == self.symtable.table[tmpToken]['type']:
+                    return self.symtable.table[tmpToken]['type']
+                else:
+                    return "error"
             else:
                 return ""
 
         elif self.currentToken.token == 'numero_inteiro':
             self.getToken()
-            return "inteiro"
+            if self.returnType == "real" or self.returnType == "inteiro":
+                return "inteiro"
+            else:
+                return "error"
 
         elif self.currentToken.token == 'numero_real':
             self.getToken()
-            return "real"
+            if self.returnType == "real":
+                return "real"
+            else:
+                return "error"
 
         elif self.currentToken.token == '(':
             self.getToken()
@@ -919,7 +918,10 @@ class Parser(object):
 
         elif self.currentToken.token == 'cadeia_literal':
             self.getToken()
-            return "literal"
+            if self.returnType == "literal":
+                return "literal"
+            else:
+                return "error"
         else:
             self.error()
 
@@ -942,12 +944,8 @@ class Parser(object):
 
             if self.currentToken.token == ')':
                 self.getToken()
-                if ret1 == "logico" or ret2 == "logico":
-                    return "logico"
-                elif ret1 == "real" or ret2 == "real":
-                    return "real"
-                elif ret1 == "inteiro" or ret2 == "inteiro":
-                    return "inteiro"
+                if ret1 == "error":
+                    return "error"
                 else:
                     return ret1
             else:
@@ -974,7 +972,10 @@ class Parser(object):
         if self.currentToken.token in self.firstOf('op_relacional'):
             self.op_relacional()
             self.exp_aritmetica()
-            return "logico"
+            if self.returnType == "logico":
+                return "logico"
+            else:
+                return "error"
         return ""
     # 51
     def op_relacional(self):
@@ -992,8 +993,8 @@ class Parser(object):
         # <termo_logico> <outros_termos_logicos>
         ret1 = self.termo_logico()
         ret2 = self.outros_termos_logicos()
-        if ret2 == "logico":
-            return "logico"
+        if ret2 == "error":
+            return "error"
         else:
             return ret1
     
@@ -1002,15 +1003,18 @@ class Parser(object):
         # nao | 3
         if self.currentToken.token == 'nao':
             self.getToken()
-            return "logico"
+            if self.returnType == "logico":
+                return "logico"
+            else:
+                return "error"
     
     # 54
     def termo_logico(self):
         # <fator_logico> <outros_fatores_logicos>
         ret1 = self.fator_logico()
         ret2 = self.outros_fatores_logicos()
-        if ret2 == "logico":
-            return "logico"
+        if ret2 == "error":
+            return "error"
         else:
             return ret1
 
@@ -1021,8 +1025,10 @@ class Parser(object):
             self.getToken()
             self.termo_logico()
             self.outros_termos_logicos()
-            return "logico"
-
+            if self.returnType == "logico":
+                return "logico"
+            else:
+                return "error"
 
     # 56
     def outros_fatores_logicos(self):
@@ -1031,15 +1037,18 @@ class Parser(object):
             self.getToken()
             self.fator_logico()
             self.outros_fatores_logicos()
-            return "logico"
+            if self.returnType == "logico":
+                return "logico"
+            else:
+                return "error"
 
     # 57
     def fator_logico(self):
         # <op_nao> <parcela_logica>
         ret1 = self.op_nao()
         ret2 = self.parcela_logica()
-        if ret1 == "logico":
-            return "logico"
+        if ret1 == "error":
+            return "error"
         else:
             return ret2
 
@@ -1048,7 +1057,10 @@ class Parser(object):
         # verdadeiro | falso | <exp_relacional>
         if self.currentToken.token == 'verdadeiro' or self.currentToken.token == 'falso':
             self.getToken()
-            return "logico"
+            if self.returnType == "logico":
+                return "logico"
+            else:
+                return "error"
         elif self.currentToken.token in self.firstOf('exp_relacional'):
             return self.exp_relacional()
         else:
