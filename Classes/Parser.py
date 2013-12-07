@@ -30,7 +30,14 @@ class Parser(object):
         self.errorRef = error
 
         # identifier temp
-        self.tempident = []
+        self.tempIdent = []
+        self.ponteiroOpc = False
+        self.declaring = False
+        self.tipoRecebe = ""
+        self.variavelRecebe = ""
+
+        # Error list
+        self.listError = []
 
         # This is first-set of non-terminals ("primeiros")
         # It's a dictionary where the non-terminal/terminal is the key
@@ -107,6 +114,8 @@ class Parser(object):
     def parse(self):
         self.getToken()
         self.programa()
+        if self.listError:
+            self.errorRef.semanticError(self.listError)
 
     # Helper methods
     def getToken(self):
@@ -170,8 +179,9 @@ class Parser(object):
         # | tipo IDENT : <tipo>
         if self.currentToken.token == 'declare':
             self.getToken()
+            self.declaring = True
             self.variavel()
-
+            self.declaring = False
         elif self.currentToken.token == 'constante':
             self.getToken()
 
@@ -223,6 +233,21 @@ class Parser(object):
         # <ponteiro_opcional> IDENT <outros_ident> <dimensao>
         self.ponteiro_opcional()
         if self.currentToken.token == 'identificador':
+            # insert symbol in symbol table
+            if self.declaring:
+                if self.ponteiroOpc:
+                    ok = self.symtable.insertSymbol(self.currentToken.name, (self.currentToken.name, self.currentToken.token, 'ponteiro', '', '', 'local'))
+                    self.ponteiroOpc = False
+                else:
+                    ok = self.symtable.insertSymbol(self.currentToken.name, (self.currentToken.name, self.currentToken.token, 'variavel', '', '', 'local'))
+                if not ok:
+                    self.listError.append('Linha ' + str(self.lexer.lineNumber) + ': identificador ' + self.currentToken.name + ' ja declarado anteriormente')
+                # add to tempIndent list
+                self.tempIdent.append(self.currentToken.name)
+            else:
+                if self.currentToken.name not in self.symtable.table:
+                    self.listError.append("Linha " + str(self.lexer.lineNumber) + ': identificador ' + self.currentToken.name + ' nao declarado')
+
             self.getToken()
             self.outros_ident()
             self.dimensao()
@@ -233,6 +258,7 @@ class Parser(object):
     def ponteiro_opcional(self):
         # ^ | 3
         if self.currentToken.token == '^':
+            self.ponteiroOpc = True
             self.getToken()
 
     # 8
@@ -290,6 +316,11 @@ class Parser(object):
         # literal | inteiro | real | logico
         if self.currentToken.token == 'literal' or self.currentToken.token == 'inteiro' or \
                 self.currentToken.token == 'real' or self.currentToken.token == 'logico':
+            # run through the tempIdent list to add types to the variables
+            for e in self.tempIdent:
+                self.symtable.table[e]['type'] = self.currentToken.token
+            self.tempIdent.clear()
+
             self.getToken()
         else:
             self.error()
@@ -301,6 +332,14 @@ class Parser(object):
             self.tipo_basico()
         else:
             if self.currentToken.token == 'identificador':
+                # Checks whether the identifier is in the symtable
+                if self.currentToken.name not in self.symtable.table:
+                    self.listError.append("Linha " + str(self.lexer.lineNumber) + ": tipo " + self.currentToken.name + " nao declarado")
+                # run through tempIdent
+                for e in self.tempIdent:
+                    self.symtable.table[e]['type'] = self.currentToken.name
+                self.tempIdent.clear()
+
                 self.getToken()
             else:
                 self.error()
@@ -344,8 +383,8 @@ class Parser(object):
             if self.currentToken.token == 'identificador':
 
                 # insert symbol in symbol table
-                symtable.insertSymbol(self.currentToken.name, (self.currentToken.name, self.currentToken.token,
-                                                               'procedimento', '', '', ''))
+                if not symtable.insertSymbol(self.currentToken.name, (self.currentToken.name, self.currentToken.token, 'procedimento', '', '', 'global')):
+                    self.listError.append('Linha ' + self.lexer.lineNumber + ': identificador ' + self.currentToken.name + ' ja declarado anteriormente')
 
                 self.getToken()
                 if self.currentToken.token == '(':
@@ -374,8 +413,9 @@ class Parser(object):
             if self.currentToken.token == 'identificador':
 
                 # insert symbol in symbol table
-                symtable.insertSymbol(self.currentToken.name, (self.currentToken.name, self.currentToken.token,
-                                                               'funcao', '', '', ''))
+                if not symtable.insertSymbol(self.currentToken.name, (self.currentToken.name, self.currentToken.token, 'funcao', '', '', 'global')):
+                    self.listError.append('Linha ' + self.lexer.lineNumber + ': identificador ' + self.currentToken.name + ' ja declarado anteriormente')
+
                 self.getToken()
                 if self.currentToken.token == '(':
                     self.getToken()
@@ -390,7 +430,7 @@ class Parser(object):
                             self.comandos()
 
                             if self.currentToken.token == 'fim_funcao':
-                                 self.getToken()
+                                self.getToken()
                             else:
                                 self.error()
                         else:
@@ -584,6 +624,11 @@ class Parser(object):
         elif self.currentToken.token == '^':
             self.getToken()
             if self.currentToken.token == 'identificador':
+                if self.currentToken.name not in self.symtable.table:
+                    self.listError.append("Linha " + str(self.lexer.lineNumber) + ': identificador ' + self.currentToken.name + ' nao declarado')
+                else:
+                    self.tipoRecebe = self.symtable.table[self.currentToken.name]['type']
+                    self.variavelRecebe = self.currentToken.name
                 self.getToken()
                 self.outros_ident()
                 self.dimensao()
@@ -591,6 +636,8 @@ class Parser(object):
                 if self.currentToken.token == '<-':
                     self.getToken()
                     self.expressao()
+                    self.tipoRecebe = ""
+                    self.variavelRecebe = ""
                 else:
                     self.error()
 
@@ -599,8 +646,15 @@ class Parser(object):
 
         # | IDENT <chamada_atribuicao>
         elif self.currentToken.token == 'identificador':
+            if self.currentToken.name not in self.symtable.table:
+                    self.listError.append("Linha " + str(self.lexer.lineNumber) + ': identificador ' + self.currentToken.name + ' nao declarado')
+            else:
+                self.tipoRecebe = self.symtable.table[self.currentToken.name]['type']
+                self.variavelRecebe = self.currentToken.name
             self.getToken()
             self.chamada_atribuicao()
+            self.tipoRecebe = ""
+            self.variavelRecebe = ""
 
         # | retorne <expressao>
         elif self.currentToken.token == 'retorne':
@@ -778,10 +832,22 @@ class Parser(object):
                 self.error()
 
         elif self.currentToken.token == 'identificador':
+            if self.currentToken.name not in self.symtable.table:
+                self.listError.append("Linha " + str(self.lexer.lineNumber) + ': identificador ' + self.currentToken.name + ' nao declarado')
+            else:
+                if self.tipoRecebe != "" and self.symtable.table[self.currentToken.name]['type'] != self.tipoRecebe:
+                    self.listError.append("Linha " + str(self.lexer.lineNumber) + ': atribuicao nao compativel para ' + self.variavelRecebe)
             self.getToken()
             self.chamada_partes()
 
-        elif self.currentToken.token == 'numero_inteiro' or self.currentToken.token == 'numero_real':
+        elif self.currentToken.token == 'numero_inteiro':
+            if self.tipoRecebe != 'inteiro':
+                self.listError.append("Linha " + str(self.lexer.lineNumber) + ': atribuicao nao compativel para ' + self.variavelRecebe)
+            self.getToken()
+
+        elif self.currentToken.token == 'numero_real':
+            if self.tipoRecebe != 'inteiro' or self.tipoRecebe != 'real':
+                self.listError.append("Linha " + str(self.lexer.lineNumber) + ': atribuicao nao compativel para ' + self.variavelRecebe)
             self.getToken()
 
         elif self.currentToken.token == '(':
@@ -802,6 +868,8 @@ class Parser(object):
             self.getToken()
 
             if self.currentToken.token == 'identificador':
+                if self.currentToken.name not in self.symtable.table:
+                    self.listError.append("Linha " + str(self.lexer.lineNumber) + ': identificador ' + self.currentToken.name + ' nao declarado')
                 self.getToken()
                 self.outros_ident()
                 self.dimensao()
@@ -858,6 +926,7 @@ class Parser(object):
         if self.currentToken.token == '=' or self.currentToken.token == '<>' or \
                         self.currentToken.token == '>=' or self.currentToken.token == '<=' or \
                         self.currentToken.token == '>' or self.currentToken.token == '<':
+
             self.getToken()
         else:
             self.error()

@@ -30,3 +30,8 @@ class Error(object):
         self.outfile.write(message)
         self.outfile.write('\nFim da compilacao\n')
         sys.exit(0)
+
+    def semanticError(self, listError):
+        for msg in listError:
+            self.outfile.write(msg + '\n')
+        self.outfile.write('Fim da compilacao\n')

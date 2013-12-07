@@ -160,7 +160,7 @@ class LexicalAy(object):
 
                 if state == 2 and not (c.isalnum() or c == '_'):
                     if tmp in self.symtable.table:
-                        if self.symtable.table[tmp][2] == 'identificador':
+                        if self.symtable.table[tmp]['token'] == 'identificador':
                             self.listToken.append(Token(tmp, 'identificador'))
                         else:
                             self.listToken.append(Token(tmp, tmp))

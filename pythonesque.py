@@ -46,19 +46,16 @@ def main(infile, outfile):
     # Parse!
     parser.parse()
 
-    # Write on the output file
-    #out.write('Fim da compilacao\n')
 
     # Instantiate Code Generator class
-    ly2 = LexicalAy(symtable, infile, error)
-    codegenerator = CodeGenerator(ly2, out)
+    #ly2 = LexicalAy(symtable, infile, error)
+    #codegenerator = CodeGenerator(ly2, out)
 
     # Generator Code
-    code = codegenerator.code()
+   # code = codegenerator.code()
 
-    for c in code:
-        out.write(c)
-        print c
+    #for c in code:
+    #    out.write(c)
 
     # Close output file
     # (input file doesn't need to be closed since we're using linecache)
