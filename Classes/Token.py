@@ -1,19 +1,16 @@
-__author__ = 'Matheus'
-__author__ = 'Rafael'
-__author__ = 'Thiago'
-__author__ = 'Bruno'
+__author__ = 'Bruno_Matheus_Rafael_Thiago'
 
 
 class Token:
     # Constructor
-    def __init__(self, name, category, bad=None):
+    def __init__(self, name, token, bad=None):
         """
 
         :param name:
-        :param category:
+        :param token:
         """
         self.name = name
-        self.category = category
+        self.token = token
         if bad is None:
             self.bad = False
         else:

@@ -165,7 +165,7 @@ class LexicalAy(object):
                         else:
                             self.listToken.append(Token(tmp, tmp))
                     else:
-                        self.symtable.insertSymbol(tmp, (tmp, 'variavel', 'identificador', self.scope, 'null', self.lineNumber, self.lineNumber))
+                        #self.symtable.insertSymbol(tmp, (tmp, 'variavel', 'identificador', self.scope, 'null', self.lineNumber, self.lineNumber))
                         self.listToken.append(Token(tmp, 'identificador'))
                     auto = 'begin'
 

@@ -41,7 +41,7 @@ def main(infile, outfile):
     ly = LexicalAy(symtable, infile, error)
 
     # Instantiate Parser class
-    parser = Parser(ly, error)
+    parser = Parser(ly, symtable, error)
 
     # Parse!
     parser.parse()
