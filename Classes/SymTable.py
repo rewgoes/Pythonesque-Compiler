@@ -7,15 +7,15 @@ class SymTable(object):
         self.table = self.initTable(keywords, keysymbols)
 
     def initTable(self, keywords, keysymbols):
-        # Format of symboltable [ KEY, (NAME, TOKEN, CATEGORY, TYPE, VALUE, SCOPE) ]
+        # Format of symboltable [ KEY, (NAME, TOKEN, CATEGORY, TYPE, VALUE, SCOPE, PARAM) ]
         tmp = {}
 
         # TODO - Review the following lines
         for e in keysymbols:
-            tmp[e] = {'name': e, 'token': "res", 'category': "symbol", 'type': 0, 'value': e, 'scope': 0}
+            tmp[e] = {'name': e, 'token': "res", 'category': "symbol", 'type': 0, 'value': e, 'scope': 0, 'param': []}
 
         for e in keywords:
-            tmp[e] = {'name': e, 'token': "res", 'category': e, 'type': 0, 'value': e, 'scope': 0}
+            tmp[e] = {'name': e, 'token': "res", 'category': e, 'type': 0, 'value': e, 'scope': 0, 'param': []}
 
         return tmp
 
@@ -36,6 +36,7 @@ class SymTable(object):
             self.table[key]['type'] = stuff[3]
             self.table[key]['value'] = stuff[4]
             self.table[key]['scope'] = stuff[5]
+            self.table[key]['param'] = stuff[6]
             return True
 
     # Removes a symbol from the table

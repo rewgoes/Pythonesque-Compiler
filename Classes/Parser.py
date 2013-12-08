@@ -37,6 +37,9 @@ class Parser(object):
         self.returnVar = ""
         self.regVar = []
         self.regName = ""
+        self.paramProc = []
+        self.varProc = []
+        self.nameProc = ""
 
         # Error list
         self.listError = []
@@ -240,12 +243,12 @@ class Parser(object):
 
                 if self.regVar:
                     for r in self.regVar:
-                        ok = self.symtable.insertSymbol(r + "." + self.currentToken.name, (r + "." + self.currentToken.name, self.currentToken.token, 'variavel', '', '', 'local'))
+                        ok = self.symtable.insertSymbol(r + "." + self.currentToken.name, (r + "." + self.currentToken.name, self.currentToken.token, 'variavel', '', '', 'local', []))
                         if not ok:
                             self.listError.append('Linha ' + str(self.lexer.lineNumber) + ': identificador ' + r + "." + self.currentToken.name + ' ja declarado anteriormente')
                         self.tempIdent.append(r + "." + self.currentToken.name)
                 else:
-                    ok = self.symtable.insertSymbol(self.currentToken.name, (self.currentToken.name, self.currentToken.token, 'variavel', '', '', 'local'))
+                    ok = self.symtable.insertSymbol(self.currentToken.name, (self.currentToken.name, self.currentToken.token, 'variavel', '', '', 'local', []))
                     if not ok:
                         self.listError.append('Linha ' + str(self.lexer.lineNumber) + ': identificador ' + self.currentToken.name + ' ja declarado anteriormente')
                     # add to tempIndent list
@@ -412,8 +415,10 @@ class Parser(object):
             if self.currentToken.token == 'identificador':
 
                 # insert symbol in symbol table
-                if not self.symtable.insertSymbol(self.currentToken.name, (self.currentToken.name, self.currentToken.token, 'procedimento', '', '', 'global')):
+                if not self.symtable.insertSymbol(self.currentToken.name, (self.currentToken.name, self.currentToken.token, 'procedimento', '', '', 'global', [])):
                     self.listError.append('Linha ' + self.lexer.lineNumber + ': identificador ' + self.currentToken.name + ' ja declarado anteriormente')
+
+                self.nameProc = self.currentToken.name
 
                 self.getToken()
                 if self.currentToken.token == '(':
@@ -427,6 +432,9 @@ class Parser(object):
 
                         if self.currentToken.token == 'fim_procedimento':
                             self.getToken()
+                            self.nameProc=""
+                            self.paramProc=[]
+                            self.varProc=[]
                         else:
                             self.error()
                     else:
@@ -442,7 +450,7 @@ class Parser(object):
             if self.currentToken.token == 'identificador':
 
                 # insert symbol in symbol table
-                if not self.symtable.insertSymbol(self.currentToken.name, (self.currentToken.name, self.currentToken.token, 'funcao', '', '', 'global')):
+                if not self.symtable.insertSymbol(self.currentToken.name, (self.currentToken.name, self.currentToken.token, 'funcao', '', '', 'global', [])):
                     self.listError.append('Linha ' + self.lexer.lineNumber + ': identificador ' + self.currentToken.name + ' ja declarado anteriormente')
 
                 self.getToken()
