@@ -38,8 +38,9 @@ class Parser(object):
         self.regVar = []
         self.regName = ""
         self.paramProc = []
-        self.varProc = []
         self.nameProc = ""
+        # keeps the scope of the program, as it can have global variables
+        self.scope = "global"
 
         # Error list
         self.listError = []
@@ -149,6 +150,7 @@ class Parser(object):
         self.declaracoes()
 
         if self.currentToken.token == 'algoritmo':
+            self.scope = "local"
             self.getToken()
         else:
             self.error()
@@ -243,12 +245,12 @@ class Parser(object):
 
                 if self.regVar:
                     for r in self.regVar:
-                        ok = self.symtable.insertSymbol(r + "." + self.currentToken.name, (r + "." + self.currentToken.name, self.currentToken.token, 'variavel', '', '', 'local', []))
+                        ok = self.symtable.insertSymbol(r + "." + self.currentToken.name, (r + "." + self.currentToken.name, self.currentToken.token, 'variavel', '', '', self.scope, []))
                         if not ok:
                             self.listError.append('Linha ' + str(self.lexer.lineNumber) + ': identificador ' + r + "." + self.currentToken.name + ' ja declarado anteriormente')
                         self.tempIdent.append(r + "." + self.currentToken.name)
                 else:
-                    ok = self.symtable.insertSymbol(self.currentToken.name, (self.currentToken.name, self.currentToken.token, 'variavel', '', '', 'local', []))
+                    ok = self.symtable.insertSymbol(self.currentToken.name, (self.currentToken.name, self.currentToken.token, 'variavel', '', '', self.scope, []))
                     if not ok:
                         self.listError.append('Linha ' + str(self.lexer.lineNumber) + ': identificador ' + self.currentToken.name + ' ja declarado anteriormente')
                     # add to tempIndent list
@@ -415,9 +417,10 @@ class Parser(object):
             if self.currentToken.token == 'identificador':
 
                 # insert symbol in symbol table
-                if not self.symtable.insertSymbol(self.currentToken.name, (self.currentToken.name, self.currentToken.token, 'procedimento', '', '', 'global', [])):
+                if not self.symtable.insertSymbol(self.currentToken.name, (self.currentToken.name, self.currentToken.token, 'procedimento', '', '', self.scope, [])):
                     self.listError.append('Linha ' + self.lexer.lineNumber + ': identificador ' + self.currentToken.name + ' ja declarado anteriormente')
 
+                self.scope = "local"
                 self.nameProc = self.currentToken.name
 
                 self.getToken()
@@ -431,10 +434,11 @@ class Parser(object):
                         self.comandos()
 
                         if self.currentToken.token == 'fim_procedimento':
+                            self.scope = "global"
+                            self.symtable.removeLocal();
                             self.getToken()
                             self.nameProc=""
                             self.paramProc=[]
-                            self.varProc=[]
                         else:
                             self.error()
                     else:
@@ -450,9 +454,10 @@ class Parser(object):
             if self.currentToken.token == 'identificador':
 
                 # insert symbol in symbol table
-                if not self.symtable.insertSymbol(self.currentToken.name, (self.currentToken.name, self.currentToken.token, 'funcao', '', '', 'global', [])):
+                if not self.symtable.insertSymbol(self.currentToken.name, (self.currentToken.name, self.currentToken.token, 'funcao', '', '', self.scope, [])):
                     self.listError.append('Linha ' + self.lexer.lineNumber + ': identificador ' + self.currentToken.name + ' ja declarado anteriormente')
 
+                self.scope = "local"
                 self.getToken()
                 if self.currentToken.token == '(':
                     self.getToken()
@@ -467,6 +472,8 @@ class Parser(object):
                             self.comandos()
 
                             if self.currentToken.token == 'fim_funcao':
+                                self.scope = "global"
+                                self.symtable.removeLocal();
                                 self.getToken()
                             else:
                                 self.error()

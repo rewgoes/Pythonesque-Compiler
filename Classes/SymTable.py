@@ -5,6 +5,7 @@ class SymTable(object):
     # Constructor
     def __init__(self, keywords, keysymbols):
         self.table = self.initTable(keywords, keysymbols)
+        self.local = []
 
     def initTable(self, keywords, keysymbols):
         # Format of symboltable [ KEY, (NAME, TOKEN, CATEGORY, TYPE, VALUE, SCOPE, PARAM) ]
@@ -36,9 +37,15 @@ class SymTable(object):
             self.table[key]['type'] = stuff[3]
             self.table[key]['value'] = stuff[4]
             self.table[key]['scope'] = stuff[5]
+            if self.table[key]['scope'] == 'local':
+                self.local.append(key)
             self.table[key]['param'] = stuff[6]
             return True
 
     # Removes a symbol from the table
     def removeSymbol(self, key):
         self.table.pop(key)
+        
+    def removeLocal(self):
+        for key in self.local:
+            self.table.pop(key)
