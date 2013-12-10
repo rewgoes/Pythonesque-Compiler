@@ -197,14 +197,17 @@ class Parser(object):
             self.getToken()
 
             if self.currentToken.token == 'identificador':
+                nameConst = self.currentToken.name
                 self.getToken()
 
                 if self.currentToken.token == ':':
                     self.getToken()
+                    ttipo = self.currentToken.name
                     self.tipo_basico()
 
                     if self.currentToken.token == '=':
                         self.getToken()
+                        self.symtable.insertSymbol(nameConst, (nameConst, 'identificador', 'constante', ttipo, self.currentToken.name, 'global', []))
                         self.valor_constante()
                     else:
                         self.error()
