@@ -37,6 +37,7 @@ class Parser(object):
         self.returnVar = ""
         self.regVar = []
         self.regName = ""
+        self.yaregName = ""
         self.isProcedure = False
         self.param = False
         self.paramProc = []
@@ -46,6 +47,7 @@ class Parser(object):
         self.returnPermition = False
         self.tempCode = ""
         self.paramEscreva = []
+        self.customTypes = []
         # keeps the scope of the program, as it can have global variables
         self.scope = "global"
 
@@ -232,10 +234,18 @@ class Parser(object):
         elif self.currentToken.token == 'tipo':
             self.getToken()
             if self.currentToken.token == 'identificador':
+                # Inserts type as a variable in symbol table
+                if not self.symtable.insertSymbol(self.currentToken.name, (self.currentToken.name, self.currentToken.token, 'tipo', '', '', self.scope, [])):
+                    self.listError.append('Linha ' + str(self.lexer.lineNumber) + ': identificador ' + self.currentToken.name + ' ja declarado anteriormente')
+                self.regName = self.currentToken.name
+                self.tempIdent.append(self.currentToken.name)
                 self.getToken()
                 if self.currentToken.token == ':':
                     self.getToken()
+                    self.declaring = True
                     self.tipo()
+                    self.declaring = False
+
                 else:
                     self.error()
             else:
@@ -265,6 +275,7 @@ class Parser(object):
 
                 if self.regVar:
                     for r in self.regVar:
+                        self.symtable.table[r]['param'].append(self.currentToken.name)
                         ok = self.symtable.insertSymbol(r + "." + self.currentToken.name, (r + "." + self.currentToken.name, self.currentToken.token, 'variavel', '', '', self.scope, []))
                         if not ok:
                             self.listError.append('Linha ' + str(self.lexer.lineNumber) + ': identificador ' + r + "." + self.currentToken.name + ' ja declarado anteriormente')
@@ -279,19 +290,21 @@ class Parser(object):
 
                 if self.isProcedure:
                     self.localIdent.append(self.currentToken.name)
-            else:
+
+            else:  # not declaring
                 if self.currentToken.name not in self.symtable.table:
                     self.listError.append("Linha " + str(self.lexer.lineNumber) + ': identificador ' + self.currentToken.name + ' nao declarado')
                 else:
                     if self.tempCode == "scanf(":
                         ttype = self.symtable.table[self.currentToken.name]['type']
-                        if ttype=="inteiro":
+                        if ttype == "inteiro":
                             self.tempCode += '\"%d",'
-                        elif ttype=="real":
+                        elif ttype == "real":
                             self.tempCode += '\"%l",'
-                        elif ttype=="literal":
+                        elif ttype == "literal":
                             self.tempCode += '\"%s",'
                         self.tempCode += "&" + self.currentToken.name
+                        self.yaregName = self.currentToken.name
 
             self.getToken()
             self.outros_ident()
@@ -316,11 +329,17 @@ class Parser(object):
                 if self.returnVar != "":
                     self.returnVar += "." + self.currentToken.name
                     if self.returnVar not in self.symtable.table:
-                        self.listError.append("Linha " + str(self.lexer.lineNumber) + ": identificador " + self.returnVar + "nao declarado")
+                        self.listError.append("Linha " + str(self.lexer.lineNumber) + ": identificador " + self.returnVar + " nao declarado")
                     else:
                         self.returnType = self.symtable.table[self.returnVar]['type']
+                elif self.yaregName != "":
+                    newregName = self.yaregName + "." + self.currentToken.name
+                    if newregName not in self.symtable.table:
+                        self.listError.append("Linha " + str(self.lexer.lineNumber) + ": identificador " + newregName + " nao declarado")
+                #self.yaregName += self.currentToken.name
                 self.getToken()
                 self.outros_ident()
+
             else:
                 self.error()
     
@@ -419,9 +438,20 @@ class Parser(object):
                         self.symtable.table[e]['category'] = "ponteiro"
                     else:
                         self.symtable.table[e]['category'] = "variavel"
-                    self.symtable.table[e]['type'] = self.currentToken.token
-                    if self.param:
-                        self.paramProc.append(self.currentToken.token)
+                    if self.regName != "":
+                        self.symtable.table[e]['type'] = self.currentToken.name
+                        # Adds register type variable to each of this declared type
+                        listVar = self.symtable.table[self.currentToken.name]['param']
+                        for v in listVar:
+                            vtype = self.symtable.table[self.currentToken.name + "." + v]["type"]
+                            if not self.symtable.insertSymbol(e + "." + v, (e + "." + v, self.currentToken.token, 'variavel', vtype, '', self.scope, [])):
+                                break
+
+                        if self.param:
+                            self.paramProc.append(self.currentToken.token)
+                    else:
+                        self.symtable.table[e]['type'] = self.currentToken.token
+
 
                 self.ponteiroOpc = False
                 self.tempIdent = []
@@ -653,12 +683,14 @@ class Parser(object):
                 self.mais_expressao()
                 
                 for i in self.paramEscreva:
-                    if self.symtable.table[i.name]['type'] == 'inteiro':
-                        self.tempCode += "%d"
-                    elif self.symtable.table[i.name]['type'] == 'real':
-                        self.tempCode += "%l"
-                    elif self.symtable.table[i.name]['type'] == 'literal':
-                        self.tempCode += "%s"
+                    if i in self.symtable.table:
+                        if self.symtable.table[i.name]['type'] == 'inteiro':
+                            self.tempCode += "%d"
+                        elif self.symtable.table[i.name]['type'] == 'real':
+                            self.tempCode += "%l"
+                        elif self.symtable.table[i.name]['type'] == 'literal':
+                            self.tempCode += "%s"
+
                 self.tempCode += '\\n\",'
                 
                 for i in self.paramEscreva:
@@ -1098,9 +1130,11 @@ class Parser(object):
             if self.currentToken.token == 'identificador':
                 if self.currentToken.name not in self.symtable.table:
                     self.listError.append("Linha " + str(self.lexer.lineNumber) + ': identificador ' + self.currentToken.name + ' nao declarado')
+                self.yaregName = self.currentToken.name
                 self.getToken()
                 self.outros_ident()
                 self.dimensao()
+                self.yaregName = ""
                 if self.returnType == "endereco":
                     return "endereco"
                 else:
@@ -1137,8 +1171,6 @@ class Parser(object):
 
             ret1 = self.expressao()
             ret2 = self.mais_expressao()
-
-
 
             if self.currentToken.token == ')':
                 self.getToken()
