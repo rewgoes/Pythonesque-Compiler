@@ -42,6 +42,7 @@ class Parser(object):
         self.paramProc = []
         self.nameProc = ""
         self.localIdent = []
+        self.lastIdent = ""
         # keeps the scope of the program, as it can have global variables
         self.scope = "global"
 
@@ -258,6 +259,7 @@ class Parser(object):
                         self.listError.append('Linha ' + str(self.lexer.lineNumber) + ': identificador ' + self.currentToken.name + ' ja declarado anteriormente')
                     # add to tempIndent list
                     self.tempIdent.append(self.currentToken.name)
+                    self.lastIdent = self.currentToken.name
 
                 if self.isProcedure:
                     self.localIdent.append(self.currentToken.name)
@@ -301,7 +303,12 @@ class Parser(object):
         # [ <exp_aritmetica ] <dimensao> | 3
         if self.currentToken.token == '[':
             self.getToken()
+            if self.returnVar != "":
+                self.returnVar += "["+self.currentToken.name+"]"
             self.exp_aritmetica()
+
+            if self.lastIdent in self.symtable.table:
+                self.symtable.table[self.lastIdent]['category'] = "vetor"
 
             if self.currentToken.token == ']':
                 self.getToken()
@@ -741,7 +748,8 @@ class Parser(object):
                 if ret == "inteiro" and self.returnType == "real":
                     pass
                 else:
-                    self.listError.append("Linha " + str(lineN) + ": atribuicao nao compativel para " + self.returnVar)
+                    if self.returnVar != "":
+                        self.listError.append("Linha " + str(lineN) + ": atribuicao nao compativel para " + self.returnVar)
             self.returnType = ""
             self.returnVar = ""
 
