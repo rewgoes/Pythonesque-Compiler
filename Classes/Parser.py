@@ -43,6 +43,7 @@ class Parser(object):
         self.nameProc = ""
         self.localIdent = []
         self.lastIdent = ""
+        self.returnPermition = False
         # keeps the scope of the program, as it can have global variables
         self.scope = "global"
 
@@ -478,6 +479,7 @@ class Parser(object):
         # | funcao IDENT ( <parametros_opcional> ) : <tipo_estendido> <declaracoes_locais> <comandos> fim_funcao
         elif self.currentToken.token == 'funcao':
             self.getToken()
+            self.returnPermition = True
 
             if self.currentToken.token == 'identificador':
 
@@ -505,6 +507,7 @@ class Parser(object):
                             self.comandos()
 
                             if self.currentToken.token == 'fim_funcao':
+                                self.returnPermition = False
                                 for l in self.localIdent:
                                     self.symtable.removeSymbol(l)
                                 self.isProcedure = False
@@ -758,8 +761,12 @@ class Parser(object):
 
         # | retorne <expressao>
         elif self.currentToken.token == 'retorne':
+            if not self.returnPermition:
+                self.listError.append("Linha " + str(self.lexer.lineNumber) + ": comando retorne nao permitido nesse escopo")
+
             self.getToken()
             self.expressao()
+
         else:
             self.error()
 
