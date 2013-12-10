@@ -45,6 +45,7 @@ class Parser(object):
         self.lastIdent = ""
         self.returnPermition = False
         self.tempCode = ""
+        self.paramEscreva = []
         # keeps the scope of the program, as it can have global variables
         self.scope = "global"
 
@@ -173,6 +174,7 @@ class Parser(object):
         self.corpo()
 
         if self.currentToken.token == 'fim_algoritmo':
+            self.listCode.append("return 0;");
             self.listCode.append("}")
         else:
             self.error()
@@ -289,7 +291,7 @@ class Parser(object):
                             self.tempCode += '\"%l",'
                         elif ttype=="literal":
                             self.tempCode += '\"%s",'
-                        self.tempCode += self.currentToken.name
+                        self.tempCode += "&" + self.currentToken.name
 
             self.getToken()
             self.outros_ident()
@@ -646,14 +648,27 @@ class Parser(object):
             self.getToken()
             if self.currentToken.token == '(':
                 self.getToken()
-                self.tempCode = "printf("
+                self.tempCode = 'printf(\"'
                 self.expressao()
                 self.mais_expressao()
+                
+                for i in self.paramEscreva:
+                    if self.symtable.table[i.name]['type'] == 'inteiro':
+                        self.tempCode += "%d"
+                    elif self.symtable.table[i.name]['type'] == 'real':
+                        self.tempCode += "%l"
+                    elif self.symtable.table[i.name]['type'] == 'literal':
+                        self.tempCode += "%s"
+                self.tempCode += '\\n\",'
+                
+                for i in self.paramEscreva:
+                    self.tempCode += i.name
 
                 if self.currentToken.token == ')':
                     self.tempCode += ");"
                     self.listCode.append(self.tempCode)
                     self.tempCode = ""
+                    self.paramEscreva = []
                     self.getToken()
                 else:
                     self.error()
@@ -1008,6 +1023,10 @@ class Parser(object):
                 self.error()
 
         elif self.currentToken.token == 'identificador':
+            
+            if self.tempCode == 'printf(\"':
+                self.paramEscreva.append(self.currentToken)
+            
             ok = True
             if self.currentToken.name not in self.symtable.table:
                 self.listError.append("Linha " + str(self.lexer.lineNumber) + ': identificador ' + self.currentToken.name + ' nao declarado')
@@ -1039,6 +1058,9 @@ class Parser(object):
                 return ""
 
         elif self.currentToken.token == 'numero_inteiro':
+            
+            if self.tempCode == 'printf(\"':
+                self.paramEscreva.append(self.currentToken)
             self.getToken()
             if self.returnType == "real" or self.returnType == "inteiro":
                 return "inteiro"
@@ -1046,6 +1068,9 @@ class Parser(object):
                 return "error"
 
         elif self.currentToken.token == 'numero_real':
+            
+            if self.tempCode == 'printf(\"':
+                self.paramEscreva.append(self.currentToken)
             self.getToken()
             if self.returnType == "real":
                 return "real"
@@ -1084,6 +1109,9 @@ class Parser(object):
                 self.error()
 
         elif self.currentToken.token == 'cadeia_literal':
+            
+            if self.tempCode == 'printf(\"':
+                self.paramEscreva.append(self.currentToken)
             self.getToken()
             if self.returnType == "literal":
                 return "literal"
