@@ -37,8 +37,11 @@ class Parser(object):
         self.returnVar = ""
         self.regVar = []
         self.regName = ""
+        self.isProcedure = False
+        self.param = False
         self.paramProc = []
         self.nameProc = ""
+        self.localIdent = []
         # keeps the scope of the program, as it can have global variables
         self.scope = "global"
 
@@ -255,6 +258,9 @@ class Parser(object):
                         self.listError.append('Linha ' + str(self.lexer.lineNumber) + ': identificador ' + self.currentToken.name + ' ja declarado anteriormente')
                     # add to tempIndent list
                     self.tempIdent.append(self.currentToken.name)
+
+                if self.isProcedure:
+                    self.localIdent.append(self.currentToken.name)
             else:
                 if self.currentToken.name not in self.symtable.table:
                     self.listError.append("Linha " + str(self.lexer.lineNumber) + ': identificador ' + self.currentToken.name + ' nao declarado')
@@ -346,6 +352,9 @@ class Parser(object):
     
     # 14
     def tipo_basico_ident(self):
+        if self.param:
+            self.paramProc.append(self.currentToken.name)
+
         # <tipo_basico> | IDENT
         if self.currentToken.token in self.firstOf('tipo_basico'):
             self.tipo_basico()
@@ -362,6 +371,8 @@ class Parser(object):
                     else:
                         self.symtable.table[e]['category'] = "variavel"
                     self.symtable.table[e]['type'] = self.currentToken.token
+                    if self.param:
+                        self.paramProc.append(self.currentToken.token)
 
                 self.ponteiroOpc = False
                 self.tempIdent = []
@@ -420,7 +431,7 @@ class Parser(object):
                 if not self.symtable.insertSymbol(self.currentToken.name, (self.currentToken.name, self.currentToken.token, 'procedimento', '', '', self.scope, [])):
                     self.listError.append('Linha ' + self.lexer.lineNumber + ': identificador ' + self.currentToken.name + ' ja declarado anteriormente')
 
-                self.scope = "local"
+                self.isProcedure = True
                 self.nameProc = self.currentToken.name
 
                 self.getToken()
@@ -428,17 +439,23 @@ class Parser(object):
                     self.getToken()
                     self.parametros_opcional()
 
+                    self.symtable.table[self.nameProc]['param'] = self.paramProc
+                    self.paramProc = []
+
                     if self.currentToken.token == ')':
                         self.getToken()
                         self.declaracoes_locais()
                         self.comandos()
 
                         if self.currentToken.token == 'fim_procedimento':
-                            self.scope = "global"
-                            self.symtable.removeLocal();
-                            self.getToken()
+                            for l in self.localIdent:
+                                self.symtable.removeSymbol(l)
+                            self.isProcedure = False
+                            self.localIdent=[]
                             self.nameProc=""
-                            self.paramProc=[]
+                            self.paramProc = []
+
+                            self.getToken()
                         else:
                             self.error()
                     else:
@@ -451,17 +468,23 @@ class Parser(object):
         # | funcao IDENT ( <parametros_opcional> ) : <tipo_estendido> <declaracoes_locais> <comandos> fim_funcao
         elif self.currentToken.token == 'funcao':
             self.getToken()
+
             if self.currentToken.token == 'identificador':
 
                 # insert symbol in symbol table
                 if not self.symtable.insertSymbol(self.currentToken.name, (self.currentToken.name, self.currentToken.token, 'funcao', '', '', self.scope, [])):
                     self.listError.append('Linha ' + self.lexer.lineNumber + ': identificador ' + self.currentToken.name + ' ja declarado anteriormente')
 
-                self.scope = "local"
+                self.isProcedure = True
+                self.nameProc = self.currentToken.name
+
                 self.getToken()
                 if self.currentToken.token == '(':
                     self.getToken()
                     self.parametros_opcional()
+
+                    self.symtable.table[self.nameProc]['param'] = self.paramProc
+                    self.paramProc = []
 
                     if self.currentToken.token == ')':
                         self.getToken()
@@ -472,8 +495,13 @@ class Parser(object):
                             self.comandos()
 
                             if self.currentToken.token == 'fim_funcao':
-                                self.scope = "global"
-                                self.symtable.removeLocal();
+                                for l in self.localIdent:
+                                    self.symtable.removeSymbol(l)
+                                self.isProcedure = False
+                                self.localIdent = []
+                                self.nameProc = ""
+                                self.paramProc = []
+
                                 self.getToken()
                             else:
                                 self.error()
@@ -495,14 +523,19 @@ class Parser(object):
     # 20
     def parametro(self):
         # <var_opcional> <identificador> <mais_ident> : <tipo_estendido> <mais_parametros>
+
+        self.declaring = True
         self.var_opcional()
         self.identificador()
         self.mais_ident()
 
         if self.currentToken.token == ':':
             self.getToken()
+            self.param = True
             self.tipo_estendido()
             self.mais_parametros()
+            self.declaring = False
+            self.param = False
         else:
             self.error()
 
@@ -913,8 +946,21 @@ class Parser(object):
                 self.listError.append("Linha " + str(self.lexer.lineNumber) + ': identificador ' + self.currentToken.name + ' nao declarado')
                 ok = False
             tmpToken = self.currentToken.name
+
+            if self.isProcedure:
+                self.paramProc.append(self.symtable.table[tmpToken]['type'])
+
+            if tmpToken in self.symtable.table and (self.symtable.table[tmpToken]['category'] == "procedimento" or self.symtable.table[tmpToken]['category'] == "funcao"):
+                self.paramProc = []
+                self.isProcedure = True
             self.getToken()
             self.chamada_partes()
+
+            if self.isProcedure and (self.symtable.table[tmpToken]['category'] == "procedimento" or self.symtable.table[tmpToken]['category'] == "funcao"):
+                self.isProcedure = False
+                if self.paramProc != self.symtable.table[tmpToken]['param']:
+                    self.listError.append("Linha " + str(self.lexer.lineNumber) + ": incompatibilidade de parametros na chamada de " + tmpToken)
+                self.paramProc = []
             if ok:
                 if self.returnType == "real" and (self.symtable.table[tmpToken]['type'] == "real" or self.symtable.table[tmpToken]['type'] == "inteiro"):
                     return self.symtable.table[tmpToken]['type']
@@ -993,8 +1039,11 @@ class Parser(object):
         # ( <expressao> <mais_expressao> ) | <outros_ident> <dimensao> | 3
         if self.currentToken.token == '(':
             self.getToken()
+
             ret1 = self.expressao()
             ret2 = self.mais_expressao()
+
+
 
             if self.currentToken.token == ')':
                 self.getToken()
@@ -1048,6 +1097,8 @@ class Parser(object):
         # <termo_logico> <outros_termos_logicos>
         ret1 = self.termo_logico()
         ret2 = self.outros_termos_logicos()
+        if self.isProcedure and ret1!="error":
+                self.paramProc.append(ret1)
         if ret2 == "error":
             return "error"
         else:

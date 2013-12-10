@@ -44,7 +44,7 @@ class SymTable(object):
 
     # Removes a symbol from the table
     def removeSymbol(self, key):
-        self.table.pop(key)
+        del self.table[key]
         
     def removeLocal(self):
         for key in self.local:
