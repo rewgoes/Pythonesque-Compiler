@@ -4,7 +4,6 @@ from Classes.LexicalAy import LexicalAy
 from Classes.SymTable import SymTable
 from Classes.Parser import Parser
 from Classes.Error import Error
-from Classes.CodeGenerator import CodeGenerator
 
 
 # List of reserved words
@@ -46,16 +45,6 @@ def main(infile, outfile):
     # Parse!
     parser.parse()
 
-
-    # Instantiate Code Generator class
-    #ly2 = LexicalAy(symtable, infile, error)
-    #codegenerator = CodeGenerator(ly2, out)
-
-    # Generator Code
-   # code = codegenerator.code()
-
-    #for c in code:
-    #    out.write(c)
 
     # Close output file
     # (input file doesn't need to be closed since we're using linecache)

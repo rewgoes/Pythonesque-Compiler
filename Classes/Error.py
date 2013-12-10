@@ -35,3 +35,7 @@ class Error(object):
         for msg in listError:
             self.outfile.write(msg + '\n')
         self.outfile.write('Fim da compilacao\n')
+    
+    def noError(self, listCode):
+        for code in listCode:
+            self.outfile.write(code + '\n')

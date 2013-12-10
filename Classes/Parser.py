@@ -44,11 +44,15 @@ class Parser(object):
         self.localIdent = []
         self.lastIdent = ""
         self.returnPermition = False
+        self.tempCode = ""
         # keeps the scope of the program, as it can have global variables
         self.scope = "global"
 
         # Error list
         self.listError = []
+        
+        # Code list
+        self.listCode = []
 
         # This is first-set of non-terminals ("primeiros")
         # It's a dictionary where the non-terminal/terminal is the key
@@ -127,6 +131,8 @@ class Parser(object):
         self.programa()
         if self.listError:
             self.errorRef.semanticError(self.listError)
+        else:
+            self.errorRef.noError(self.listCode)
 
     # Helper methods
     def getToken(self):
@@ -151,11 +157,15 @@ class Parser(object):
     # Grammar rules
     # 1
     def programa(self):
+        self.listCode.append("#include <stdlib.h>")
+        self.listCode.append("#include <stdio.h>")
+        
         # <declaracoes> algoritmo <corpo> fim_algoritmo
         self.declaracoes()
 
         if self.currentToken.token == 'algoritmo':
             self.scope = "local"
+            self.listCode.append("int main() {")
             self.getToken()
         else:
             self.error()
@@ -163,7 +173,7 @@ class Parser(object):
         self.corpo()
 
         if self.currentToken.token == 'fim_algoritmo':
-            pass
+            self.listCode.append("}")
         else:
             self.error()
 
@@ -270,6 +280,16 @@ class Parser(object):
             else:
                 if self.currentToken.name not in self.symtable.table:
                     self.listError.append("Linha " + str(self.lexer.lineNumber) + ': identificador ' + self.currentToken.name + ' nao declarado')
+                else:
+                    if self.tempCode == "scanf(":
+                        ttype = self.symtable.table[self.currentToken.name]['type']
+                        if ttype=="inteiro":
+                            self.tempCode += '\"%d",'
+                        elif ttype=="real":
+                            self.tempCode += '\"%l",'
+                        elif ttype=="literal":
+                            self.tempCode += '\"%s",'
+                        self.tempCode += self.currentToken.name
 
             self.getToken()
             self.outros_ident()
@@ -350,13 +370,29 @@ class Parser(object):
         # literal | inteiro | real | logico
         if self.currentToken.token == 'literal' or self.currentToken.token == 'inteiro' or \
                 self.currentToken.token == 'real' or self.currentToken.token == 'logico':
+            
+            code = ""
+            if self.currentToken.token == 'literal':
+                code += "char[50] "
+            if self.currentToken.token == 'inteiro':
+                code += "int "
+            if self.currentToken.token == 'real':
+                code += "double "
+            
+            first = True
             # run through the tempIdent list to add types to the variables
             for e in self.tempIdent:
+                if not first:
+                    code += ", "
+                if first:
+                    first = True
                 if self.ponteiroOpc:
                     self.symtable.table[e]['category'] = "ponteiro"
                 self.symtable.table[e]['type'] = self.currentToken.token
+                code += self.symtable.table[e]['name']
             self.tempIdent = []
-
+            code += ";"
+            self.listCode.append(code)
             self.getToken()
         else:
             self.error()
@@ -591,10 +627,14 @@ class Parser(object):
             self.getToken()
             if self.currentToken.token == '(':
                 self.getToken()
+                self.tempCode = "scanf("
                 self.identificador()
                 self.mais_ident()
 
                 if self.currentToken.token == ')':
+                    self.tempCode += ");"
+                    self.listCode.append(self.tempCode)
+                    self.tempCode = ""
                     self.getToken()
                 else:
                     self.error()
@@ -606,10 +646,14 @@ class Parser(object):
             self.getToken()
             if self.currentToken.token == '(':
                 self.getToken()
+                self.tempCode = "printf("
                 self.expressao()
                 self.mais_expressao()
 
                 if self.currentToken.token == ')':
+                    self.tempCode += ");"
+                    self.listCode.append(self.tempCode)
+                    self.tempCode = ""
                     self.getToken()
                 else:
                     self.error()
@@ -619,15 +663,20 @@ class Parser(object):
         # | se <expressao> entao <comandos> <senao_opcional> fim_se
         elif self.currentToken.token == 'se':
             self.getToken()
+            self.tempCode = "if("
             self.expressao()
 
             if self.currentToken.token == 'entao':
                 self.getToken()
+                self.tempCode += "){"
                 self.comandos()
                 self.senao_opcional()
 
                 if self.currentToken.token == 'fim_se':
                     self.getToken()
+                    self.tempCode += "}"
+                    self.listCode.append(self.tempCode)
+                    self.tempCode = ""
                 else:
                     self.error()
             else:
