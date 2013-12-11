@@ -29,7 +29,7 @@ class Parser(object):
         # Error instance
         self.errorRef = error
 
-        # identifier temp
+        # Control variables for the semantic analyser
         self.tempIdent = []
         self.ponteiroOpc = False
         self.declaring = False
@@ -50,6 +50,7 @@ class Parser(object):
         self.customTypes = []
         self.isArray = False
         self.beforeAttr = False
+        self.regVarReturnType = ""
         # keeps the scope of the program, as it can have global variables
         self.scope = "global"
 
@@ -335,8 +336,9 @@ class Parser(object):
             self.getToken()
 
             if self.currentToken.token == 'identificador':
-                if self.returnVar != "":
+                if self.returnVar != "" and self.beforeAttr:
                     self.returnVar += "." + self.currentToken.name
+
                     if self.returnVar not in self.symtable.table:
                         self.listError.append("Linha " + str(self.lexer.lineNumber) + ": identificador " + self.returnVar + " nao declarado")
                     else:
@@ -345,7 +347,9 @@ class Parser(object):
                     newregName = self.yaregName + "." + self.currentToken.name
                     if newregName not in self.symtable.table:
                         self.listError.append("Linha " + str(self.lexer.lineNumber) + ": identificador " + newregName + " nao declarado")
-                #self.yaregName += self.currentToken.name
+                    else:
+                        self.regVarReturnType = self.symtable.table[newregName]['type']
+
                 self.getToken()
                 self.outros_ident()
             else:
@@ -1128,6 +1132,10 @@ class Parser(object):
                     return self.symtable.table[tmpToken]['type']
                 elif self.returnType == self.symtable.table[tmpToken]['type']:
                     return self.symtable.table[tmpToken]['type']
+                elif self.regVarReturnType != "":
+                    ret = self.regVarReturnType
+                    self.regVarReturnType = ""
+                    return ret
                 else:
                     return "error"
             else:
