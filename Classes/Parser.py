@@ -48,6 +48,7 @@ class Parser(object):
         self.tempCode = ""
         self.paramEscreva = []
         self.customTypes = []
+        self.isArray = False
         # keeps the scope of the program, as it can have global variables
         self.scope = "global"
 
@@ -295,6 +296,7 @@ class Parser(object):
                 if self.currentToken.name not in self.symtable.table:
                     self.listError.append("Linha " + str(self.lexer.lineNumber) + ': identificador ' + self.currentToken.name + ' nao declarado')
                 else:
+                    # code gen
                     if self.tempCode == "scanf(":
                         ttype = self.symtable.table[self.currentToken.name]['type']
                         if ttype == "inteiro":
@@ -304,12 +306,13 @@ class Parser(object):
                         elif ttype == "literal":
                             self.tempCode += '\"%s",'
                         self.tempCode += "&" + self.currentToken.name
-                        try:
-                            nextv = next(iter(self.listToken))
-                            if nextv.name == '.':
-                                self.yaregName = self.currentToken.name
-                        except StopIteration:
-                            pass
+                    # end of code gen
+                    try:
+                        nextv = next(iter(self.listToken))
+                        if nextv.name == '.':
+                            self.yaregName = self.currentToken.name
+                    except StopIteration:
+                        pass
 
             self.getToken()
             self.outros_ident()
@@ -349,6 +352,7 @@ class Parser(object):
     
     # 9
     def dimensao(self):
+        self.isArray = True
         # [ <exp_aritmetica ] <dimensao> | 3
         if self.currentToken.token == '[':
             self.getToken()
@@ -364,6 +368,7 @@ class Parser(object):
                 self.dimensao()
             else:
                 self.error()
+        self.isArray = False
 
     # 10
     def tipo(self):
@@ -424,7 +429,7 @@ class Parser(object):
     
     # 14
     def tipo_basico_ident(self):
-        if self.param:
+        if self.param and not self.isArray:
             self.paramProc.append(self.currentToken.name)
 
         # <tipo_basico> | IDENT
@@ -451,11 +456,10 @@ class Parser(object):
                             if not self.symtable.insertSymbol(e + "." + v, (e + "." + v, self.currentToken.token, 'variavel', vtype, '', self.scope, [])):
                                 break
 
-                        if self.param:
-                            self.paramProc.append(self.currentToken.token)
+                        #if self.param:
+                            #self.paramProc.append(self.currentToken.token)
                     else:
                         self.symtable.table[e]['type'] = self.currentToken.token
-
 
                 self.ponteiroOpc = False
                 self.tempIdent = []
@@ -853,7 +857,11 @@ class Parser(object):
                     self.returnType = "endereco"
                 else:
                     self.returnType = self.symtable.table[self.currentToken.name]['type']
-                self.returnVar = self.currentToken.name
+
+                cat = self.symtable.table[self.currentToken.name]['category']
+                if cat != "funcao" and cat != "procedimento":
+                    self.returnVar = self.currentToken.name
+
             lineN = self.lexer.lineNumber
             try:
                 nextv = next(iter(self.listToken))
@@ -1085,7 +1093,7 @@ class Parser(object):
                 ok = False
             tmpToken = self.currentToken.name
 
-            if self.isProcedure:
+            if self.isProcedure and not self.isArray:
                 self.paramProc.append(self.symtable.table[tmpToken]['type'])
 
             if tmpToken in self.symtable.table and (self.symtable.table[tmpToken]['category'] == "procedimento" or self.symtable.table[tmpToken]['category'] == "funcao"):
@@ -1256,7 +1264,8 @@ class Parser(object):
         ret1 = self.termo_logico()
         ret2 = self.outros_termos_logicos()
         if self.isProcedure and ret1!="error":
-                self.paramProc.append(ret1)
+                #self.paramProc.append(ret1)
+            pass
         if ret2 == "error":
             return "error"
         else:
