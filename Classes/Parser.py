@@ -49,6 +49,7 @@ class Parser(object):
         self.paramEscreva = []
         self.customTypes = []
         self.isArray = False
+        self.beforeAttr = False
         # keeps the scope of the program, as it can have global variables
         self.scope = "global"
 
@@ -356,7 +357,7 @@ class Parser(object):
         # [ <exp_aritmetica ] <dimensao> | 3
         if self.currentToken.token == '[':
             self.getToken()
-            if self.returnVar != "":
+            if self.returnVar != "" and self.beforeAttr:
                 self.returnVar += "["+self.currentToken.name+"]"
             self.exp_aritmetica()
 
@@ -408,7 +409,11 @@ class Parser(object):
                 code += "int "
             if self.currentToken.token == 'real':
                 code += "double "
-            
+
+            # Add function return type to table
+            if self.isProcedure:
+                self.symtable.table[self.nameProc]['type'] = self.currentToken.token
+
             first = True
             # run through the tempIdent list to add types to the variables
             for e in self.tempIdent:
@@ -835,11 +840,13 @@ class Parser(object):
                 self.dimensao()
 
                 if self.currentToken.token == '<-':
+                    self.beforeAttr = True
                     lineN = self.lexer.lineNumber
                     self.getToken()
                     if self.expressao() == "error":
                         self.listError.append("Linha " + str(lineN) + ": atribuicao nao compativel para ^" + self.returnVar)
 
+                    self.beforeAttr = True
                     self.returnType = ""
                     self.returnVar = ""
                 else:
@@ -850,6 +857,7 @@ class Parser(object):
 
         # | IDENT <chamada_atribuicao>
         elif self.currentToken.token == 'identificador':
+            self.beforeAttr = True
             if self.currentToken.name not in self.symtable.table and self.yaregName == "":
                     self.listError.append("Linha " + str(self.lexer.lineNumber) + ': identificador ' + self.currentToken.name + ' nao declarado')
             else:
@@ -924,8 +932,10 @@ class Parser(object):
             self.dimensao()
 
             if self.currentToken.token == '<-':
+                self.beforeAttr = False
                 self.getToken()
-                return self.expressao()
+                ret = self.expressao()
+                return ret
             else:
                 self.error()
     
