@@ -304,7 +304,12 @@ class Parser(object):
                         elif ttype == "literal":
                             self.tempCode += '\"%s",'
                         self.tempCode += "&" + self.currentToken.name
-                        self.yaregName = self.currentToken.name
+                        try:
+                            nextv = next(iter(self.listToken))
+                            if nextv.name == '.':
+                                self.yaregName = self.currentToken.name
+                        except StopIteration:
+                            pass
 
             self.getToken()
             self.outros_ident()
@@ -339,7 +344,6 @@ class Parser(object):
                 #self.yaregName += self.currentToken.name
                 self.getToken()
                 self.outros_ident()
-
             else:
                 self.error()
     
@@ -679,6 +683,13 @@ class Parser(object):
             if self.currentToken.token == '(':
                 self.getToken()
                 self.tempCode = 'printf(\"'
+                if self.currentToken.name in self.symtable.table:
+                    try:
+                        nextv = next(iter(self.listToken))
+                        if nextv.name == '.':
+                            self.yaregName = self.currentToken.name
+                    except StopIteration:
+                        pass
                 self.expressao()
                 self.mais_expressao()
                 
@@ -835,7 +846,7 @@ class Parser(object):
 
         # | IDENT <chamada_atribuicao>
         elif self.currentToken.token == 'identificador':
-            if self.currentToken.name not in self.symtable.table:
+            if self.currentToken.name not in self.symtable.table and self.yaregName == "":
                     self.listError.append("Linha " + str(self.lexer.lineNumber) + ': identificador ' + self.currentToken.name + ' nao declarado')
             else:
                 if self.symtable.table[self.currentToken.name]['category'] == "ponteiro":
@@ -844,6 +855,12 @@ class Parser(object):
                     self.returnType = self.symtable.table[self.currentToken.name]['type']
                 self.returnVar = self.currentToken.name
             lineN = self.lexer.lineNumber
+            try:
+                nextv = next(iter(self.listToken))
+                if nextv.name == '.':
+                    self.yaregName = self.currentToken.name
+            except StopIteration:
+                pass
             self.getToken()
             ret = self.chamada_atribuicao()
             if ret != self.returnType:
@@ -1057,11 +1074,14 @@ class Parser(object):
         elif self.currentToken.token == 'identificador':
             
             if self.tempCode == 'printf(\"':
-                self.paramEscreva.append(self.currentToken)
+                if self.yaregName == "":
+                    self.paramEscreva.append(self.currentToken)
+                # TODO else add currentTokenName.nexTokenName
             
             ok = True
             if self.currentToken.name not in self.symtable.table:
-                self.listError.append("Linha " + str(self.lexer.lineNumber) + ': identificador ' + self.currentToken.name + ' nao declarado')
+                if self.yaregName == "":
+                    self.listError.append("Linha " + str(self.lexer.lineNumber) + ': identificador ' + self.currentToken.name + ' nao declarado')
                 ok = False
             tmpToken = self.currentToken.name
 
@@ -1071,6 +1091,12 @@ class Parser(object):
             if tmpToken in self.symtable.table and (self.symtable.table[tmpToken]['category'] == "procedimento" or self.symtable.table[tmpToken]['category'] == "funcao"):
                 self.paramProc = []
                 self.isProcedure = True
+            try:
+                nextv = next(iter(self.listToken))
+                if nextv.name == '.':
+                    self.yaregName = self.currentToken.name
+            except StopIteration:
+                pass
             self.getToken()
             self.chamada_partes()
 
@@ -1130,11 +1156,16 @@ class Parser(object):
             if self.currentToken.token == 'identificador':
                 if self.currentToken.name not in self.symtable.table:
                     self.listError.append("Linha " + str(self.lexer.lineNumber) + ': identificador ' + self.currentToken.name + ' nao declarado')
-                self.yaregName = self.currentToken.name
+
+                try:
+                    nextv = next(iter(self.listToken))
+                    if nextv.name == '.':
+                        self.yaregName = self.currentToken.name
+                except StopIteration:
+                    pass
                 self.getToken()
                 self.outros_ident()
                 self.dimensao()
-                self.yaregName = ""
                 if self.returnType == "endereco":
                     return "endereco"
                 else:
