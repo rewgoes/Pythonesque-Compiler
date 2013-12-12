@@ -1,13 +1,16 @@
 #!/usr/bin/env bash
 
 INPUT=Arquivos_teste/2.arquivos_gera_codigo_C/1.entrada/*
-INPUTC=(Arquivos_teste/2.arquivos_gera_codigo_C/3.entrada_execucao/*)
-OUTPUTC=(Arquivos_teste/2.arquivos_gera_codigo_C/4.saida/*)
+INPUTC=Arquivos_teste/2.arquivos_gera_codigo_C/3.entrada_execucao/
+OUTPUTC=Arquivos_teste/2.arquivos_gera_codigo_C/4.saida/
+
 
 # Remove previous folder
+rm -rf testoutput_C/
 rm -rf testoutput/
 
 # Create folder
+mkdir testoutput_C/
 mkdir testoutput/
 
 for f in $INPUT
@@ -16,33 +19,22 @@ do
     fname=`basename $f`
 
     # Execute pythonesque on test case
-    python pythonesque.py $f testoutput/$fname.c
+    python pythonesque.py $f testoutput_C/$fname.c
 
-done
+    # Compile in C
+    gcc testoutput_C/$fname.c -o testoutput_C/$fname
 
-    # Grab every output to compile in C
-    TESTOUT=testoutput/*.c
-for f2 in $TESTOUT 
-do
-    gcc $f2 -o  ${f2%.c}.r
-done
+	testoutput_C/$fname < $INPUTC$fname > testoutput/$fname
+	
+	# Compare output with sample
+    out=`diff -b -B testoutput/$fname $OUTPUTC$fname`
 
-    TESTOUT=(testoutput/*.r)
-for ((i = 0; i < ${#INPUTC[@]}; i++)) 
-do
-    in=${INPUTC[i]}
-    out=${TESTOUT[i]}.txt
-
-    ${TESTOUT[i]} < $in > $out
-
-    out=`diff $out ${OUTPUTC[i]}`
-
-    # Compare output with sample
     if [ -n "$out" ] 
     then
         # Error
-        echo "Error on ${TESTOUT%.r}..."
+        echo "Error on $fname..."
     else
-        echo "${TESTOUT%.r} OK"
+        echo "$fname OK"
     fi
+
 done

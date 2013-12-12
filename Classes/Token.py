@@ -3,7 +3,7 @@ __author__ = 'Bruno_Matheus_Rafael_Thiago'
 
 class Token:
     # Constructor
-    def __init__(self, name, token, bad=None):
+    def __init__(self, name="", token="", bad=None):
         """
 
         :param name:

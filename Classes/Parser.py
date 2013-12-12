@@ -51,6 +51,9 @@ class Parser(object):
         self.isArray = False
         self.beforeAttr = False
         self.regVarReturnType = ""
+        self.cat = ''
+
+        self.listAtrr = []
         # keeps the scope of the program, as it can have global variables
         self.scope = "global"
 
@@ -302,12 +305,12 @@ class Parser(object):
                     if self.tempCode == "scanf(":
                         ttype = self.symtable.table[self.currentToken.name]['type']
                         if ttype == "inteiro":
-                            self.tempCode += '\"%d",'
+                            self.tempCode += '\"%d", &'
                         elif ttype == "real":
-                            self.tempCode += '\"%l",'
+                            self.tempCode += '\"%lf", &'
                         elif ttype == "literal":
-                            self.tempCode += '\"%s",'
-                        self.tempCode += "&" + self.currentToken.name
+                            self.tempCode += '\"%s", '
+                        self.tempCode += self.currentToken.name
                     # end of code gen
                     try:
                         nextv = next(iter(self.listToken))
@@ -405,10 +408,11 @@ class Parser(object):
         # literal | inteiro | real | logico
         if self.currentToken.token == 'literal' or self.currentToken.token == 'inteiro' or \
                 self.currentToken.token == 'real' or self.currentToken.token == 'logico':
-            
+            isChar = False
             code = ""
             if self.currentToken.token == 'literal':
-                code += "char[50] "
+                code += "char "
+                isChar = True
             if self.currentToken.token == 'inteiro':
                 code += "int "
             if self.currentToken.token == 'real':
@@ -424,12 +428,15 @@ class Parser(object):
                 if not first:
                     code += ", "
                 if first:
-                    first = True
+                    first = False
                 if self.ponteiroOpc:
                     self.symtable.table[e]['category'] = "ponteiro"
                 self.symtable.table[e]['type'] = self.currentToken.token
                 code += self.symtable.table[e]['name']
+                if isChar:
+                    code += "[80]"
             self.tempIdent = []
+            isChar = False
             code += ";"
             self.listCode.append(code)
             self.getToken()
@@ -705,19 +712,31 @@ class Parser(object):
                         pass
                 self.expressao()
                 self.mais_expressao()
-                
+
                 for i in self.paramEscreva:
-                    if i in self.symtable.table:
+                    if i.name in self.symtable.table:
                         if self.symtable.table[i.name]['type'] == 'inteiro':
                             self.tempCode += "%d"
                         elif self.symtable.table[i.name]['type'] == 'real':
-                            self.tempCode += "%l"
+                            self.tempCode += "%lf"
                         elif self.symtable.table[i.name]['type'] == 'literal':
                             self.tempCode += "%s"
+                    else:
+                        if i.token == 'cadeia_literal':
+                            self.tempCode += "%s"
+                        elif i.token == 'numero_inteiro':
+                            self.tempCode += "%d"
+                        elif i.token == 'numero_real':
+                            self.tempCode += "%lf"
 
                 self.tempCode += '\\n\",'
-                
+
+                isFirst = True
                 for i in self.paramEscreva:
+                    if not isFirst:
+                        self.tempCode += ", "
+                    if isFirst:
+                        isFirst = False
                     self.tempCode += i.name
 
                 if self.currentToken.token == ')':
@@ -870,8 +889,10 @@ class Parser(object):
                 else:
                     self.returnType = self.symtable.table[self.currentToken.name]['type']
 
-                cat = self.symtable.table[self.currentToken.name]['category']
-                if cat != "funcao" and cat != "procedimento":
+                self.tempCode = self.currentToken.name
+
+                self.cat = self.symtable.table[self.currentToken.name]['category']
+                if self.cat != "funcao" and self.cat != "procedimento":
                     self.returnVar = self.currentToken.name
 
             lineN = self.lexer.lineNumber
@@ -889,16 +910,29 @@ class Parser(object):
                 else:
                     if self.returnVar != "":
                         self.listError.append("Linha " + str(lineN) + ": atribuicao nao compativel para " + self.returnVar)
+
+            for a in self.listAtrr:
+                self.tempCode += ' ' + a
+
+            self.tempCode += ';'
+            self.listCode.append(self.tempCode)
             self.returnType = ""
             self.returnVar = ""
+            self.tempCode = ""
+            self.listAtrr = []
+            self.cat = ''
 
         # | retorne <expressao>
         elif self.currentToken.token == 'retorne':
             if not self.returnPermition:
                 self.listError.append("Linha " + str(self.lexer.lineNumber) + ": comando retorne nao permitido nesse escopo")
 
+            self.tempCode = "return "
+
             self.getToken()
             self.expressao()
+
+            self.tempCode = ""
 
         else:
             self.error()
@@ -936,6 +970,8 @@ class Parser(object):
             self.dimensao()
 
             if self.currentToken.token == '<-':
+                if self.cat == 'variavel':
+                    self.listAtrr.append('=')
                 self.beforeAttr = False
                 self.getToken()
                 ret = self.expressao()
@@ -1017,6 +1053,8 @@ class Parser(object):
     def op_multiplicacao(self):
         # * | /
         if self.currentToken.token == '*' or self.currentToken.token == '/':
+            if self.cat == 'variavel':
+                self.listAtrr.append(self.currentToken.name)
             self.getToken()
         else:
             self.error()
@@ -1025,6 +1063,8 @@ class Parser(object):
     def op_adicao(self):
         # + | -
         if self.currentToken.token == '+' or self.currentToken.token == '-':
+            if self.cat == 'variavel':
+                self.listAtrr.append(self.currentToken.name)
             self.getToken()
         else:
             self.error()
@@ -1043,9 +1083,30 @@ class Parser(object):
     def outros_termos(self):
         # <op_adicao> <termo> <outros_termos> | 3
         retf = ""
+        sinal = ''
+        token1 = Token()
+        token2 = Token()
+        tokenf = Token()
         while self.currentToken.token in self.firstOf('op_adicao'):
+            if self.tempCode == 'printf(\"':
+                token1 = self.paramEscreva.pop(len(self.paramEscreva)-1)
+                sinal = self.currentToken.name
+
             self.op_adicao()
             ret2 = self.termo()
+            if self.tempCode == 'printf(\"' and not self.listError:
+                token2 = self.paramEscreva.pop(len(self.paramEscreva)-1)
+                if token1.token == 'identificador':
+                    token1.token = self.symtable.table[token1.name]['type']
+                if token2.token == 'identificador':
+                    token2.token = self.symtable.table[token2.name]['type']
+
+                if token1.token == 'real' or token1.token == 'numero_real' or token2.token == 'numero_real' or token2.token == 'real':
+                    tokenf.token = 'numero_real'
+                else:
+                    tokenf.token = 'numero_inteiro'
+                tokenf.name = token1.name + sinal + token2.name
+                self.paramEscreva.append(tokenf)
             if ret2 == "error":
                 retf = "error"
         return retf
@@ -1095,10 +1156,13 @@ class Parser(object):
 
         elif self.currentToken.token == 'identificador':
             
-            if self.tempCode == 'printf(\"':
-                if self.yaregName == "":
+            if self.yaregName == "":
+                if self.tempCode == 'printf(\"':
                     self.paramEscreva.append(self.currentToken)
                 # TODO else add currentTokenName.nexTokenName
+
+            if self.cat == 'variavel':
+                self.listAtrr.append(self.currentToken.name)
             
             ok = True
             if self.currentToken.name not in self.symtable.table:
@@ -1110,7 +1174,7 @@ class Parser(object):
             if self.isProcedure and not self.isArray:
                 self.paramProc.append(self.symtable.table[tmpToken]['type'])
 
-            if tmpToken in self.symtable.table and (self.symtable.table[tmpToken]['category'] == "procedimento" or self.symtable.table[tmpToken]['category'] == "funcao"):
+            if tmpToken in self.symtable.table and (self.symtable.table[tmpToken]['category'] == 'procedimento' or self.symtable.table[tmpToken]['category'] == "funcao"):
                 self.paramProc = []
                 self.isProcedure = True
             try:
@@ -1145,6 +1209,9 @@ class Parser(object):
             
             if self.tempCode == 'printf(\"':
                 self.paramEscreva.append(self.currentToken)
+            if self.cat == 'variavel':
+                self.listAtrr.append(self.currentToken.name)
+
             self.getToken()
             if self.returnType == "real" or self.returnType == "inteiro":
                 return "inteiro"
@@ -1155,6 +1222,10 @@ class Parser(object):
             
             if self.tempCode == 'printf(\"':
                 self.paramEscreva.append(self.currentToken)
+
+            if self.cat == 'variavel':
+                self.listAtrr.append(self.currentToken.name)
+
             self.getToken()
             if self.returnType == "real":
                 return "real"
@@ -1162,10 +1233,14 @@ class Parser(object):
                 return "error"
 
         elif self.currentToken.token == '(':
+            if self.cat == 'variavel':
+                self.listAtrr.append(self.currentToken.name)
             self.getToken()
             ret = self.expressao()
 
             if self.currentToken.token == ')':
+                if self.cat == 'variavel':
+                    self.listAtrr.append(self.currentToken.name)
                 self.getToken()
                 return ret
             else:
@@ -1203,6 +1278,8 @@ class Parser(object):
             
             if self.tempCode == 'printf(\"':
                 self.paramEscreva.append(self.currentToken)
+            if self.cat == 'variavel':
+                self.listAtrr.append(self.currentToken.name)
             self.getToken()
             if self.returnType == "literal":
                 return "literal"
@@ -1281,8 +1358,7 @@ class Parser(object):
         # <termo_logico> <outros_termos_logicos>
         ret1 = self.termo_logico()
         ret2 = self.outros_termos_logicos()
-        if self.isProcedure and ret1!="error":
-                #self.paramProc.append(ret1)
+        if self.isProcedure and ret1 != "error":
             pass
         if ret2 == "error":
             return "error"
