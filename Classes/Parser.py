@@ -216,10 +216,12 @@ class Parser(object):
             self.variavel()
             self.declaring = False
         elif self.currentToken.token == 'constante':
+            self.tempCode += '#define '
             self.getToken()
 
             if self.currentToken.token == 'identificador':
                 nameConst = self.currentToken.name
+                self.tempCode += nameConst
                 self.getToken()
 
                 if self.currentToken.token == ':':
@@ -231,6 +233,7 @@ class Parser(object):
                         self.getToken()
                         self.symtable.insertSymbol(nameConst, (nameConst, 'identificador', 'constante', ttipo, self.currentToken.name, 'global', []))
                         self.valor_constante()
+                        self.tempCode = ''
                     else:
                         self.error()
                 else:
@@ -497,6 +500,12 @@ class Parser(object):
         if self.currentToken.token == 'cadeia_literal' or self.currentToken.token == 'numero_inteiro' or \
                         self.currentToken.token == 'numero_real' or self.currentToken.token == 'verdadeiro' or \
                         self.currentToken.token == 'falso':
+            if self.currentToken.token == 'false':
+                self.tempCode += 'false'
+            elif self.currentToken.token == 'verdadeiro':
+                self.tempCode += 'true'
+            else:
+                self.tempCode += self.currentToken.name
             self.getToken()
         else:
             self.error()
