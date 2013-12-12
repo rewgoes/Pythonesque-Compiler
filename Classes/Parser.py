@@ -52,6 +52,7 @@ class Parser(object):
         self.beforeAttr = False
         self.regVarReturnType = ""
         self.cat = ''
+        self.isIf = False
 
         self.listAtrr = []
         # keeps the scope of the program, as it can have global variables
@@ -753,20 +754,27 @@ class Parser(object):
         # | se <expressao> entao <comandos> <senao_opcional> fim_se
         elif self.currentToken.token == 'se':
             self.getToken()
-            self.tempCode = "if("
+            self.tempCode = 'if ('
+            self.isIf = True
             self.expressao()
+            self.isIf = False
+            for a in self.listAtrr:
+                self.tempCode += ' ' + a
 
             if self.currentToken.token == 'entao':
                 self.getToken()
-                self.tempCode += "){"
+                self.tempCode += ') {'
+                self.listCode.append(self.tempCode)
                 self.comandos()
                 self.senao_opcional()
 
                 if self.currentToken.token == 'fim_se':
                     self.getToken()
-                    self.tempCode += "}"
+                    self.tempCode = '}'
                     self.listCode.append(self.tempCode)
                     self.tempCode = ""
+                    self.listAtrr = []
+                    self.isIf = False
                 else:
                     self.error()
             else:
@@ -949,6 +957,7 @@ class Parser(object):
     def senao_opcional(self):
         # senao <comandos> | 3
         if self.currentToken.token == 'senao':
+            self.listCode.append('} else {')
             self.getToken()
             self.comandos()
     
@@ -1161,7 +1170,7 @@ class Parser(object):
                     self.paramEscreva.append(self.currentToken)
                 # TODO else add currentTokenName.nexTokenName
 
-            if self.cat == 'variavel':
+            if self.cat == 'variavel' or self.isIf:
                 self.listAtrr.append(self.currentToken.name)
             
             ok = True
@@ -1209,7 +1218,7 @@ class Parser(object):
             
             if self.tempCode == 'printf(\"':
                 self.paramEscreva.append(self.currentToken)
-            if self.cat == 'variavel':
+            if self.cat == 'variavel' or self.isIf:
                 self.listAtrr.append(self.currentToken.name)
 
             self.getToken()
@@ -1223,7 +1232,7 @@ class Parser(object):
             if self.tempCode == 'printf(\"':
                 self.paramEscreva.append(self.currentToken)
 
-            if self.cat == 'variavel':
+            if self.cat == 'variavel' or self.isIf:
                 self.listAtrr.append(self.currentToken.name)
 
             self.getToken()
@@ -1233,13 +1242,13 @@ class Parser(object):
                 return "error"
 
         elif self.currentToken.token == '(':
-            if self.cat == 'variavel':
+            if self.cat == 'variavel' or self.isIf:
                 self.listAtrr.append(self.currentToken.name)
             self.getToken()
             ret = self.expressao()
 
             if self.currentToken.token == ')':
-                if self.cat == 'variavel':
+                if self.cat == 'variavel' or self.isIf:
                     self.listAtrr.append(self.currentToken.name)
                 self.getToken()
                 return ret
@@ -1278,7 +1287,7 @@ class Parser(object):
             
             if self.tempCode == 'printf(\"':
                 self.paramEscreva.append(self.currentToken)
-            if self.cat == 'variavel':
+            if self.cat == 'variavel' or self.isIf:
                 self.listAtrr.append(self.currentToken.name)
             self.getToken()
             if self.returnType == "literal":
@@ -1348,7 +1357,13 @@ class Parser(object):
         if self.currentToken.token == '=' or self.currentToken.token == '<>' or \
                         self.currentToken.token == '>=' or self.currentToken.token == '<=' or \
                         self.currentToken.token == '>' or self.currentToken.token == '<':
-
+            if self.isIf:
+                if self.currentToken.token == '=':
+                    self.listAtrr.append('==')
+                elif self.currentToken.token == '<>':
+                    self.listAtrr.append('!=')
+                else:
+                    self.listAtrr.append(self.currentToken.name)
             self.getToken()
         else:
             self.error()
@@ -1369,6 +1384,8 @@ class Parser(object):
     def op_nao(self):
         # nao | 3
         if self.currentToken.token == 'nao':
+            if self.isIf:
+                self.listAtrr.append('!')
             self.getToken()
             if self.returnType == "logico":
                 return "logico"
@@ -1389,6 +1406,8 @@ class Parser(object):
     def outros_termos_logicos(self):
         # ou <termo_logico> <outros_termos_logicos> | 3
         if self.currentToken.token == 'ou':
+            if self.isIf:
+                self.listAtrr.append('||')
             self.getToken()
             self.termo_logico()
             self.outros_termos_logicos()
@@ -1401,6 +1420,8 @@ class Parser(object):
     def outros_fatores_logicos(self):
         # e <fator_logico> <outros_fatores_logicos> | 3
         if self.currentToken.token == 'e':
+            if self.isIf:
+                self.listAtrr.append('&&')
             self.getToken()
             self.fator_logico()
             self.outros_fatores_logicos()
@@ -1423,6 +1444,12 @@ class Parser(object):
     def parcela_logica(self):
         # verdadeiro | falso | <exp_relacional>
         if self.currentToken.token == 'verdadeiro' or self.currentToken.token == 'falso':
+            if self.isIf:
+                if self.currentToken.token == 'verdadeiro':
+                    self.listAtrr.append('true')
+                elif self.currentToken.token == 'falso':
+                    self.listAtrr('false')
+
             self.getToken()
             if self.returnType == "logico":
                 return "logico"
