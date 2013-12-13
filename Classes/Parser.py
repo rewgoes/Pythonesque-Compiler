@@ -939,6 +939,7 @@ class Parser(object):
         elif self.currentToken.token == '^':
             self.getToken()
             if self.currentToken.token == 'identificador':
+                self.tempCode = '*' + self.currentToken.name
                 if self.currentToken.name not in self.symtable.table:
                     self.listError.append("Linha " + str(self.lexer.lineNumber) + ': identificador ' + self.currentToken.name + ' nao declarado')
                 else:
@@ -949,15 +950,23 @@ class Parser(object):
                 self.dimensao()
 
                 if self.currentToken.token == '<-':
+                    self.tempCode += ' ='
                     self.beforeAttr = True
                     lineN = self.lexer.lineNumber
                     self.getToken()
+                    self.cat = 'variavel'
                     if self.expressao() == "error":
                         self.listError.append("Linha " + str(lineN) + ": atribuicao nao compativel para ^" + self.returnVar)
-
+                    self.cat = ''
+                    for a in self.listAtrr:
+                        self.tempCode += ' ' + a
+                    self.listAtrr = []
+                    self.tempCode += ';'
+                    self.listCode.append(self.tempCode)
                     self.beforeAttr = True
                     self.returnType = ""
                     self.returnVar = ""
+                    self.tempCode = ''
                 else:
                     self.error()
 
@@ -1063,7 +1072,7 @@ class Parser(object):
             self.dimensao()
 
             if self.currentToken.token == '<-':
-                if self.cat == 'variavel':
+                if self.cat == 'variavel' or self.cat == 'ponteiro':
                     self.listAtrr.append('=')
                 self.beforeAttr = False
                 self.getToken()
@@ -1371,6 +1380,7 @@ class Parser(object):
             self.getToken()
 
             if self.currentToken.token == 'identificador':
+                self.listAtrr.append('&' + self.currentToken.name)
                 if self.currentToken.name not in self.symtable.table:
                     self.listError.append("Linha " + str(self.lexer.lineNumber) + ': identificador ' + self.currentToken.name + ' nao declarado')
 
