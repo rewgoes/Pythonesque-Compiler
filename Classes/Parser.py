@@ -891,11 +891,16 @@ class Parser(object):
         # | enquanto <expressao> faca <comandos> fim_enquanto
         elif self.currentToken.token == 'enquanto':
             self.tempCode += "while ("
+            self.isIf = True
             self.getToken()
             self.expressao()
+            for a in self.listAtrr:
+                self.tempCode += ' ' + a
+            self.listAtrr = []
+            self.isIf = False
 
             if self.currentToken.token == 'faca':
-                self.tempCode += "){"
+                self.tempCode += " ) {"
                 self.listCode.append(self.tempCode)
                 self.tempCode = ""
                 self.getToken()
@@ -916,11 +921,17 @@ class Parser(object):
             self.comandos()
 
             if self.currentToken.token == 'ate':
-                self.tempCode += "} while ("
+                self.tempCode += "} while ( !("
                 self.getToken()
+                self.isIf = True
                 self.expressao()
-                self.tempCode += ");"
+                self.isIf = False
+                for a in self.listAtrr:
+                    self.tempCode += ' ' + a
+                self.tempCode += " ) );"
                 self.listCode.append(self.tempCode)
+                self.tempCode = ''
+                self.listAtrr = []
             else:
                 self.error()
 
