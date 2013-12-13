@@ -60,6 +60,7 @@ class Parser(object):
         self.isCaseRange = False
         self.isConst = False
         self.isFor = False
+        self.listIndArray = []
 
         self.listAtrr = []
         # keeps the scope of the program, as it can have global variables
@@ -385,6 +386,7 @@ class Parser(object):
         self.isArray = True
         # [ <exp_aritmetica ] <dimensao> | 3
         if self.currentToken.token == '[':
+
             self.getToken()
             if self.returnVar != "" and self.beforeAttr:
                 self.returnVar += "["+self.currentToken.name+"]"
@@ -398,7 +400,10 @@ class Parser(object):
                 self.dimensao()
             else:
                 self.error()
+        else:
+            self.listIndArray.append('')
         self.isArray = False
+        
 
     # 10
     def tipo(self):
@@ -560,7 +565,6 @@ class Parser(object):
         if self.currentToken.token == 'procedimento':
             self.getToken()
             if self.currentToken.token == 'identificador':
-
                 # insert symbol in symbol table
                 if not self.symtable.insertSymbol(self.currentToken.name, (self.currentToken.name, self.currentToken.token, 'procedimento', '', '', self.scope, [])):
                     self.listError.append('Linha ' + self.lexer.lineNumber + ': identificador ' + self.currentToken.name + ' ja declarado anteriormente')
@@ -571,22 +575,27 @@ class Parser(object):
                 self.getToken()
                 if self.currentToken.token == '(':
                     self.getToken()
+                    self.tempCode = 'void ' + self.nameProc + '('
                     self.parametros_opcional()
 
                     self.symtable.table[self.nameProc]['param'] = self.paramProc
                     self.paramProc = []
 
                     if self.currentToken.token == ')':
+                        self.tempCode += ') {'
+                        self.listCode.append(self.tempCode)
                         self.getToken()
                         self.declaracoes_locais()
                         self.comandos()
 
                         if self.currentToken.token == 'fim_procedimento':
+                            self.listCode.append('}')
                             for l in self.localIdent:
                                 self.symtable.removeSymbol(l)
                             self.isProcedure = False
                             self.localIdent=[]
                             self.nameProc=""
+                            self.tempCode=''
                             self.paramProc = []
 
                             self.getToken()
