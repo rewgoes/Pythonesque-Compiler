@@ -27,7 +27,7 @@ do
 	testoutput_C/$fname < $INPUTC$fname > testoutput/$fname
 	
 	# Compare output with sample
-    out=`diff -b -B testoutput/$fname $OUTPUTC$fname`
+    out=`diff testoutput/$fname $OUTPUTC$fname`
 
     if [ -n "$out" ] 
     then

@@ -55,6 +55,11 @@ class Parser(object):
         self.regVarReturnType = ""
         self.cat = ''
         self.isIf = False
+        self.isSwitch = False
+        self.isCase = False
+        self.isCaseRange = False
+        self.isConst = False
+        self.isFor = False
 
         self.listAtrr = []
         # keeps the scope of the program, as it can have global variables
@@ -218,24 +223,35 @@ class Parser(object):
             self.variavel()
             self.declaring = False
         elif self.currentToken.token == 'constante':
-            self.tempCode += '#define '
+            self.tempCode += 'const '
+            self.isConst = True
             self.getToken()
 
             if self.currentToken.token == 'identificador':
                 nameConst = self.currentToken.name
-                self.tempCode += nameConst
                 self.getToken()
 
                 if self.currentToken.token == ':':
                     self.getToken()
                     ttipo = self.currentToken.name
+                    if ttipo == 'inteiro':
+                        self.tempCode += 'int '
+                    elif ttipo == 'real':
+                        self.tempCode += 'double '
+                    elif ttipo == 'literal':
+                        self.tempCode += 'char[80] '
+                    
+                    self.tempCode += nameConst + ' = '
                     self.tipo_basico()
 
                     if self.currentToken.token == '=':
                         self.getToken()
                         self.symtable.insertSymbol(nameConst, (nameConst, 'identificador', 'constante', ttipo, self.currentToken.name, 'global', []))
                         self.valor_constante()
+                        self.tempCode += ';'
+                        self.listCode.append(self.tempCode)
                         self.tempCode = ''
+                        self.isConst = False
                     else:
                         self.error()
                 else:
@@ -446,7 +462,8 @@ class Parser(object):
             self.tempIdent = []
             isChar = False
             code += ";"
-            self.listCode.append(code)
+            if not self.isConst:
+                self.listCode.append(code)
             self.getToken()
         else:
             self.error()
@@ -743,7 +760,7 @@ class Parser(object):
                         elif i.token == 'numero_real':
                             self.tempCode += "%lf"
 
-                self.tempCode += '\\n\",'
+                self.tempCode += '\",'
 
                 isFirst = True
                 for i in self.paramEscreva:
@@ -797,8 +814,13 @@ class Parser(object):
         elif self.currentToken.token == 'caso':
             self.getToken()
             self.tempCode += "switch ("
+            self.isSwitch = True
             self.exp_aritmetica()
-            self.tempCode += ") {"
+            self.isSwitch = False
+            for a in self.listAtrr:
+                self.tempCode += ' ' + a
+            self.listAtrr = []
+            self.tempCode += " ) {"
             self.listCode.append(self.tempCode)
             self.tempCode = ""
             
@@ -820,6 +842,7 @@ class Parser(object):
         # | para IDENT <- <exp_aritmetica> ate <exp_aritmetica> faca <comandos> fim_para
         elif self.currentToken.token == 'para':
             self.tempCode += "for ("
+            self.isFor = True
             self.getToken()
 
             if self.currentToken.token == 'identificador':
@@ -831,18 +854,22 @@ class Parser(object):
                     self.tempCode += " = "
                     self.getToken()
                     self.exp_aritmetica()
+                    self.tempCode += self.listAtrr.pop(0)
                     self.tempCode += ";"
 
                     if self.currentToken.token == 'ate':
                         self.getToken()
-                        self.tempCode += (identificador + "<")
+                        self.tempCode += (identificador + "<=")
                         self.exp_aritmetica()
+                        self.tempCode += self.listAtrr.pop(0)
                         self.tempCode += (";" + identificador + "++)")
 
                         if self.currentToken.token == 'faca':
                             self.tempCode += "{"
                             self.listCode.append(self.tempCode)
                             self.tempCode = ""
+                            self.isFor = False
+                            self.listAtrr = []
                             self.getToken()
                             self.comandos()
 
@@ -1037,16 +1064,27 @@ class Parser(object):
     # 30
     def selecao(self):
         # <constantes> : <comandos> <mais_selecao>
-        self.tempCode += "case "
+        self.isCase = True
         self.constantes()
+        self.isCase = False
 
         if self.currentToken.token == ':':
-            self.tempCode += ":"
-            self.listCode.append(self.tempCode)
-            self.tempCode = ""
+            
+            if self.isCaseRange:
+                fim = int(self.listAtrr.pop(len(self.listAtrr)-1))
+                ini = int(self.listAtrr.pop(len(self.listAtrr)-1))
+                for i in range(ini,fim+1):
+                    self.listCode.append('case ' + str(i) + ':')
+                
+            else:
+                self.listCode.append('case ' + str(self.listAtrr.pop(0)) + ':')
+                
+            self.tempCode = ''
+            self.isCaseRange = False
+            self.listAtrr = []
             self.getToken()
             self.comandos()
-            self.listCode.append("break;")
+            self.listCode.append('\tbreak;')
             self.mais_selecao()
         else:
             self.error()
@@ -1067,7 +1105,7 @@ class Parser(object):
     def mais_constantes(self):
         # , <constantes> | 3
         if self.currentToken.token == ',':
-            self.tempCode += ","
+            #self.tempCode += ","
             self.getToken()
             self.mais_constantes()
 
@@ -1077,7 +1115,8 @@ class Parser(object):
         self.op_unario()
 
         if self.currentToken.token == 'numero_inteiro':
-            self.tempCode += self.currentToken.name
+            if self.isCase:
+                self.listAtrr.append(self.currentToken.name)
             self.getToken()
             self.intervalo_opcional()
         else:
@@ -1087,12 +1126,14 @@ class Parser(object):
     def intervalo_opcional(self):
         # .. <op_unario> NUM_INT | 3
         if self.currentToken.token == '..':
-            self.tempCode += " ... "
             self.getToken()
             self.op_unario()
-
+            
+            self.isCaseRange = True
             if self.currentToken.token == 'numero_inteiro':
-                self.tempCode += self.currentToken.name
+                if self.isCase:
+                    self.listAtrr.append(self.currentToken.name)
+                    
                 self.getToken()
             else:
                 self.error()
@@ -1117,7 +1158,7 @@ class Parser(object):
     def op_multiplicacao(self):
         # * | /
         if self.currentToken.token == '*' or self.currentToken.token == '/':
-            if self.cat == 'variavel':
+            if self.cat == 'variavel' or self.isSwitch or self.isIf or self.isFor:
                 self.listAtrr.append(self.currentToken.name)
             self.getToken()
         else:
@@ -1127,7 +1168,7 @@ class Parser(object):
     def op_adicao(self):
         # + | -
         if self.currentToken.token == '+' or self.currentToken.token == '-':
-            if self.cat == 'variavel':
+            if self.cat == 'variavel' or self.isSwitch or self.isIf or self.isFor:
                 self.listAtrr.append(self.currentToken.name)
             self.getToken()
         else:
@@ -1225,7 +1266,7 @@ class Parser(object):
                     self.paramEscreva.append(self.currentToken)
                 # TODO else add currentTokenName.nexTokenName
 
-            if self.cat == 'variavel' or self.isIf:
+            if self.cat == 'variavel' or self.isIf or self.isSwitch or self.isFor:
                 self.listAtrr.append(self.currentToken.name)
             
             ok = True
@@ -1273,7 +1314,7 @@ class Parser(object):
             
             if self.tempCode == 'printf(\"':
                 self.paramEscreva.append(self.currentToken)
-            if self.cat == 'variavel' or self.isIf:
+            if self.cat == 'variavel' or self.isIf or self.isSwitch or self.isFor:
                 self.listAtrr.append(self.currentToken.name)
 
             self.getToken()
@@ -1287,7 +1328,7 @@ class Parser(object):
             if self.tempCode == 'printf(\"':
                 self.paramEscreva.append(self.currentToken)
 
-            if self.cat == 'variavel' or self.isIf:
+            if self.cat == 'variavel' or self.isIf or self.isSwitch or self.isFor:
                 self.listAtrr.append(self.currentToken.name)
 
             self.getToken()
@@ -1297,13 +1338,13 @@ class Parser(object):
                 return "error"
 
         elif self.currentToken.token == '(':
-            if self.cat == 'variavel' or self.isIf:
+            if self.cat == 'variavel' or self.isIf or self.isSwitch or self.isFor:
                 self.listAtrr.append(self.currentToken.name)
             self.getToken()
             ret = self.expressao()
 
             if self.currentToken.token == ')':
-                if self.cat == 'variavel' or self.isIf:
+                if self.cat == 'variavel' or self.isIf or self.isSwitch or self.isFor:
                     self.listAtrr.append(self.currentToken.name)
                 self.getToken()
                 return ret
@@ -1342,7 +1383,7 @@ class Parser(object):
             
             if self.tempCode == 'printf(\"':
                 self.paramEscreva.append(self.currentToken)
-            if self.cat == 'variavel' or self.isIf:
+            if self.cat == 'variavel' or self.isIf or self.isSwitch or self.isFor:
                 self.listAtrr.append(self.currentToken.name)
             self.getToken()
             if self.returnType == "literal":
