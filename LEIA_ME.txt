@@ -5,12 +5,12 @@ Departamento de Computação
 Construção de Compiladores 2
 
 Grupo:
-	Bruno de Mattos e Silva		379484
-	Matheus Fernando Finatti	379603
-	Rafael Eduardo Wolf de Goes	379441
-	Thiago Neves Romero		379654
+	Bruno de Mattos e Silva			379484
+	Matheus Fernando Finatti		379603
+	Rafael Eduardo Wolf de Goes		379441
+	Thiago Neves Romero				379654
 
-Trabalho 3: Analisador Semántico
+Trabalho 3: Analisador Semántico e Gerador de Código
 
 	a)	O trabalho foi feito na linguagem python. 
 		O interpretador do Python2.7 pode ser baixado do endereço (http://python.org/download/).
@@ -24,6 +24,6 @@ Trabalho 3: Analisador Semántico
 		nome_arquivo_saida	= Substituir pelo nome do arquivo que irá conter os lexemas encontrados do código da linguagem fonte.
 
 	c)	Para os arquivos de testes fornecidos pelo professor. Organizados num diretório 'Arquivos_teste', contendo dois sub-diretórios: '1.arquivos_com_erros' e '2.arquivos_gera_codigo_C'. Sendo que estes sub-diretórios tem uma pasta de 'entrada' contendo os arquivos de entrada e uma pasta 'saida' contendo os arquivos de saída esperada. 
-		Você pode utilizar a ferramenta de teste automatizada para os arquivos do sub-diretorio '1.arquivos_com_erros'. Para rodar basta executar o script "test_com_erros.sh"(./test.sh).
+		Você pode utilizar a ferramenta de teste automatizada para os arquivos do sub-diretorio '1.arquivos_com_erros'. Para rodar basta executar o script "test_com_erros.sh"(./test_com_erros.sh). Para os arquivos no sub-diretorio '2.arquivos_sem_erros', basta rodar o scritp "test_sem_erros.sh"(test_sem_erros.sh)
 		
 		Se a comparação da saída gerada for igual a saída esperada, o script irá mostrar "nome_do_arquivo OK". Caso contrário irá mostrar "Error on nome_do_arquivo". Você pode verificar as saídas geradas na pasta "testoutput/".
