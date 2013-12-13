@@ -28,6 +28,8 @@ class Parser(object):
 
         # Error instance
         self.errorRef = error
+        
+        self.case = False
 
         # Control variables for the semantic analyser
         self.tempIdent = []
@@ -436,6 +438,8 @@ class Parser(object):
                 if self.ponteiroOpc:
                     self.symtable.table[e]['category'] = "ponteiro"
                 self.symtable.table[e]['type'] = self.currentToken.token
+                if self.ponteiroOpc:
+                    code += "*"
                 code += self.symtable.table[e]['name']
                 if isChar:
                     code += "[80]"
@@ -792,14 +796,21 @@ class Parser(object):
         # | caso <exp_aritmetica> seja <selecao> <senao_opcional> fim_caso
         elif self.currentToken.token == 'caso':
             self.getToken()
+            self.tempCode += "switch ("
             self.exp_aritmetica()
-
+            self.tempCode += ") {"
+            self.listCode.append(self.tempCode)
+            self.tempCode = ""
+            
             if self.currentToken.token == 'seja':
+                self.case = True
                 self.getToken()
                 self.selecao()
                 self.senao_opcional()
+                self.case = False
 
                 if self.currentToken.token == 'fim_caso':
+                    self.listCode.append("}")
                     self.getToken()
                 else:
                     self.error()
@@ -808,24 +819,35 @@ class Parser(object):
 
         # | para IDENT <- <exp_aritmetica> ate <exp_aritmetica> faca <comandos> fim_para
         elif self.currentToken.token == 'para':
+            self.tempCode += "for ("
             self.getToken()
 
             if self.currentToken.token == 'identificador':
+                identificador = self.currentToken.name
+                self.tempCode += identificador
                 self.getToken()
 
                 if self.currentToken.token == '<-':
+                    self.tempCode += " = "
                     self.getToken()
                     self.exp_aritmetica()
+                    self.tempCode += ";"
 
                     if self.currentToken.token == 'ate':
                         self.getToken()
+                        self.tempCode += (identificador + "<")
                         self.exp_aritmetica()
+                        self.tempCode += (";" + identificador + "++)")
 
                         if self.currentToken.token == 'faca':
+                            self.tempCode += "{"
+                            self.listCode.append(self.tempCode)
+                            self.tempCode = ""
                             self.getToken()
                             self.comandos()
 
                             if self.currentToken.token == 'fim_para':
+                                self.listCode.append("}")
                                 self.getToken()
                             else:
                                 self.error()
@@ -841,14 +863,19 @@ class Parser(object):
 
         # | enquanto <expressao> faca <comandos> fim_enquanto
         elif self.currentToken.token == 'enquanto':
+            self.tempCode += "while ("
             self.getToken()
             self.expressao()
 
             if self.currentToken.token == 'faca':
+                self.tempCode += "){"
+                self.listCode.append(self.tempCode)
+                self.tempCode = ""
                 self.getToken()
                 self.comandos()
 
                 if self.currentToken.token == 'fim_enquanto':
+                    self.listCode.append("}")
                     self.getToken()
                 else:
                     self.error()
@@ -857,12 +884,16 @@ class Parser(object):
 
         # | faca <comandos> ate <expressao>
         elif self.currentToken.token == 'faca':
+            self.listCode.append("do {")
             self.getToken()
             self.comandos()
 
             if self.currentToken.token == 'ate':
+                self.tempCode += "} while ("
                 self.getToken()
                 self.expressao()
+                self.tempCode += ");"
+                self.listCode.append(self.tempCode)
             else:
                 self.error()
 
@@ -966,9 +997,15 @@ class Parser(object):
     def senao_opcional(self):
         # senao <comandos> | 3
         if self.currentToken.token == 'senao':
-            self.listCode.append('} else {')
+            if self.case:
+                self.listCode.append("default:")
+            else:
+                self.listCode.append('} else {')
             self.getToken()
             self.comandos()
+            if self.case:
+                self.listCode.append("break;")
+                self.case = False
     
     # 29
     def chamada_atribuicao(self):
@@ -1000,11 +1037,16 @@ class Parser(object):
     # 30
     def selecao(self):
         # <constantes> : <comandos> <mais_selecao>
+        self.tempCode += "case "
         self.constantes()
 
         if self.currentToken.token == ':':
+            self.tempCode += ":"
+            self.listCode.append(self.tempCode)
+            self.tempCode = ""
             self.getToken()
             self.comandos()
+            self.listCode.append("break;")
             self.mais_selecao()
         else:
             self.error()
@@ -1025,6 +1067,7 @@ class Parser(object):
     def mais_constantes(self):
         # , <constantes> | 3
         if self.currentToken.token == ',':
+            self.tempCode += ","
             self.getToken()
             self.mais_constantes()
 
@@ -1034,6 +1077,7 @@ class Parser(object):
         self.op_unario()
 
         if self.currentToken.token == 'numero_inteiro':
+            self.tempCode += self.currentToken.name
             self.getToken()
             self.intervalo_opcional()
         else:
@@ -1043,10 +1087,12 @@ class Parser(object):
     def intervalo_opcional(self):
         # .. <op_unario> NUM_INT | 3
         if self.currentToken.token == '..':
+            self.tempCode += " ... "
             self.getToken()
             self.op_unario()
 
             if self.currentToken.token == 'numero_inteiro':
+                self.tempCode += self.currentToken.name
                 self.getToken()
             else:
                 self.error()
